@@ -1,0 +1,14 @@
+TODO
+====
+
+General
+-------
+
+* Choose English or German for Comments, Commit Messages etc.
+* Discuss Architecture
+* Write Preconditions, Postconditions and Invariants as Function Comments
+
+Features
+--------
+
+* Facilitate Testability with JUnit
