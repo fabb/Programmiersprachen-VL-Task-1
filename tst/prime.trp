@@ -1,0 +1,9 @@
+#include "common.h"
+
+#define INPUT 1337
+
+/* TODO :) */
+INPUT \  //that's the input
+	[9] \ //if
+	[9~] \ //else
+	IFTE //funny
