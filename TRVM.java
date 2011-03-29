@@ -143,28 +143,38 @@ class TRParser {
 public class TRVM {
 	private TRStack<TRTypes> stack;
 	private TRArrayList<TRTypes> inputlist;
+	private boolean debug;
 
-	public TRVM(TRStack<TRTypes> st, TRArrayList<TRTypes> il) {
+	public TRVM(TRStack<TRTypes> st, TRArrayList<TRTypes> il, boolean debug) {
 		this.stack = st;
 		this.inputlist = il;
+		this.debug = debug;
 	}
 
 	public void start() throws TRExecuteException {
+		boolean first = true;
+
 		String redc = ((char) 27) + "[31m"; //red color
 		String greenc = ((char) 27) + "[32m"; //green color
 		String resetc = ((char) 27) + "[0m"; //reset color
 		while (!inputlist.isEmpty()) {
+			if (first || debug) {
+				if (first)
+					first = false;
+				System.out.println(greenc + ">" + resetc + " " + this.stack +
+						redc + "#" + resetc + " " + this.inputlist);
+			}
 			TRTypes i = inputlist.get(0);
 			inputlist.remove(0);
 
-			if(i.isStackable()) {
+			if (i.isStackable()) {
 				this.stack.push(i);
 			} else {
 				((TROperation) i).exec();
 			}
-			System.out.println(greenc + ">" + resetc + " " + this.stack +
-					redc + "#" + resetc + " " + this.inputlist);
 		}
+		System.out.println(greenc + ">" + resetc + " " + this.stack +
+				redc + "#" + resetc + " " + this.inputlist);
 	}
 
 	public static void main(String args[]) {
@@ -172,18 +182,38 @@ public class TRVM {
 		String cyanc = ((char) 27) + "[36m"; //cyan color
 		String resetc = ((char) 27) + "[0m"; //reset color
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader filein = null;
 		int ret = 1;
 		String input = "";
+		boolean debug = false;
+
+		for (int i = 0; i < args.length; i++) {
+			if ("-f".equals(args[i])) {
+				try {
+					filein = new BufferedReader(new FileReader(args[++i]));
+				} catch (IOException e) {
+					System.err.println(redc + "<main> " + e.getMessage() + resetc);
+					System.exit(1);
+				}
+			} else if ("-d".equals(args[i])) {
+				debug = true;
+			} else {
+				System.err.println(redc + "<main> Invalid Option: " + args[i] + resetc);
+				System.exit(1);
+			}
+		}
 		do {
-			System.out.print(cyanc + "$" + resetc + " ");
+			if (filein == null)
+				System.out.print(cyanc + "$" + resetc + " ");
 			try {
+				BufferedReader ta = filein == null ? br : filein;
 				TRStack<TRTypes> stack = new TRStack<TRTypes>();
 				TRArrayList<TRTypes> inputlist = new TRArrayList<TRTypes>(200);
 
-				input = br.readLine();
+				input = ta.readLine();
 				if (input != null) {
 					ret = new TRParser(new TRScanner(input), stack, inputlist).parse();
-					new TRVM(stack, inputlist).start();
+					new TRVM(stack, inputlist, debug).start();
 				} else { // input was EOF (CTRL + D)
 					ret = 0;
 				}
@@ -196,7 +226,7 @@ public class TRVM {
 			} catch (TRExecuteException tree) {
 				System.err.println(redc + "<vm> " + tree.getMessage() + resetc);
 			}
-		} while(ret > 0);
+		} while((ret > 0) && (filein == null));
 	}
 }
 

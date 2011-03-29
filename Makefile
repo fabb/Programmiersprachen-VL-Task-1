@@ -1,17 +1,24 @@
 TARGET := TRVM.class
+CLASSTARGET := $(basename $(TARGET))
+DIST := dist
 
-all: $(TARGET)
+all: $(DIST)/$(TARGET)
 
-dist/%.class: %.java dist
+$(DIST)/%.class: %.java $(DIST)
 	@echo "COMPILE  $<"
-	@javac -d dist/ $<
+	@javac -d $(DIST)/ $<
 
-dist:
-	@mkdir -p dist/
+$(DIST):
+	@mkdir -p $(DIST)/
 
-exec: dist/$(TARGET)
-	@java -cp dist $(basename $(notdir $<))
+exec: $(DIST)/$(TARGET)
+	java -cp $(DIST) $(CLASSTARGET)
 
-.PHONY:
+tst: all
+	@make -C tst/
+	for i in `ls tst/*.tr`; do echo $$i:; java -cp $(DIST) $(CLASSTARGET) -f $$i; done
+
+.PHONY: clean tst exec
 clean:
 	rm -Rf dist/
+	make -C tst/ clean

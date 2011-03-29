@@ -7,7 +7,6 @@ General
 * Choose English or German for Comments, Commit Messages etc.
 * Discuss Architecture
 * Write Preconditions, Postconditions and Invariants as Function Comments
-* File as Input
 * Refactoring
 * Error Handling, for example 1 [1] + quits with an unhandeld exception
 
