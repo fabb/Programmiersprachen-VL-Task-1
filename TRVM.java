@@ -98,7 +98,7 @@ class TRParser {
 			}
 			next();
 		}
-		inputlist.add(pos, new TRUnit(unit + ""));
+		inputlist.add(pos, new TRUnit(unit + "", this.stack));
 	}
 
 	public int parse() throws TRScannerException, TRParserException {
@@ -108,7 +108,8 @@ class TRParser {
 				case TRScanner.S_lbr: unit(); break;
 				case TRScanner.S_rbr: throw new TRParserException("Syntax Error: ]");
 
-				case TRScanner.S_num: inputlist.add(pos, new TRInteger(scanner.ival)); break;
+				case TRScanner.S_num:
+					inputlist.add(pos, new TRInteger(scanner.ival, this.stack)); break;
 
 				case TRScanner.S_add: inputlist.add(pos, new TRAdd(this.stack, this.ch)); break;
 				case TRScanner.S_sub: inputlist.add(pos, new TRSub(this.stack, this.ch)); break;
@@ -166,12 +167,7 @@ public class TRVM {
 			}
 			TRTypes i = inputlist.get(0);
 			inputlist.remove(0);
-
-			if (i.isStackable()) {
-				this.stack.push(i);
-			} else {
-				((TROperation) i).exec();
-			}
+			i.exec();
 		}
 		System.out.println(greenc + ">" + resetc + " " + this.stack +
 				redc + "#" + resetc + " " + this.inputlist);
@@ -197,6 +193,12 @@ public class TRVM {
 				}
 			} else if ("-d".equals(args[i])) {
 				debug = true;
+			} else if ("-h".equals(args[i]) || "--help".equals(args[i])) {
+				System.out.println("Usage: java -cp dist TRVM [-d] [-f FILE] [-h|--help]\n\n" +
+						"\t-d\t\tdisplay intermediate steps of evaluation\n" +
+						"\t-f FILE\t\tuse FILE as input (instead of prompt)\n" +
+						"\t-h|--help\tprint this text");
+				System.exit(0);
 			} else {
 				System.err.println(redc + "<main> Invalid Option: " + args[i] + resetc);
 				System.exit(1);
@@ -227,6 +229,7 @@ public class TRVM {
 				System.err.println(redc + "<vm> " + tree.getMessage() + resetc);
 			}
 		} while((ret > 0) && (filein == null));
+		System.exit(0);
 	}
 }
 
@@ -237,6 +240,28 @@ class TRStack<E> extends Stack<E> {
 			t.append(i).append(" ");
 		}
 		return t + "";
+	}
+
+	/* TODO: ... wtf @ Mr. Carsten :(
+	 * warum kann ich hier das nicht ohne casten machen?
+	 * gebe ich den Cast weg, dann kommt folgender Fehler:
+	 *
+	 * > TRVM.java:246: cannot find symbol
+	 * > symbol  : method getInt()
+	 * > location: class java.lang.Object
+	 * >         return (pop()).getInt();
+	 * >                       ^
+	 * > 1 error
+	 *
+	 * FABB, ERKLAER ES MIR!!!!!1111
+	 * ich verstehe den technischen Grund dahinter nicht.
+	 *
+	 * falls es wir nicht hinkriegen sollten:
+	 * (1) wir koennten selber einen Stack implementieren, oder
+	 * (2) wir bauen einen Wrapper um Stack<TRTypes>
+	 */
+	public int popInt() throws TRExecuteException {
+		return ((TRTypes) pop()).getInt();
 	}
 }
 
@@ -253,21 +278,17 @@ class TRArrayList<E> extends ArrayList<E> {
 	}
 }
 
-abstract class TRTypes {
-	public boolean isStackable() {
-		return false;
-	}
-	public boolean isUnit() {
-		return false;
-	}
-	/* TODO
-	 *
-	public popAsInteger, ...
-	beim Poppen dann das Objekt "fragen"
-	*/
+interface TRTypes {
+	public void exec() throws TRExecuteException;
+
+	public int getInt() throws TRExecuteException;
+
+	public String getUnit() throws TRExecuteException;
+
+	public boolean eq(TRTypes o) throws TRExecuteException;
 }
 
-abstract class TROperation extends TRTypes {
+abstract class TROperation implements TRTypes {
 	protected char opc;
 	protected TRStack<TRTypes> stack;
 
@@ -276,17 +297,26 @@ abstract class TROperation extends TRTypes {
 		this.opc = opc;
 	}
 
-	abstract public void exec() throws TRExecuteException;
-
-	/* TODO: static is enough */
-	protected void checkBool(TRInteger i) throws TRExecuteException {
-		int t = i.getInt();
-		if (t != 0 && t != 1)
-			throw new TRExecuteException("Not a valid Boolean: " + t);
+	protected static void checkBool(int i) throws TRExecuteException {
+		if (i != 0 && i != 1)
+			throw new TRExecuteException("Not a valid Boolean: \"" + i + "\"");
 	}
 
 	public String toString() {
 		return "" + this.opc;
+	}
+
+	public int getInt() throws TRExecuteException {
+		throw new TRExecuteException("Not an Integer or Boolean: \"" + this + "\"");
+	}
+
+	public String getUnit() throws TRExecuteException {
+		throw new TRExecuteException("Not an Unit: \"" + this + "\"");
+	}
+
+	/* Comparing operations doesn't make sense in this context */
+	public boolean eq(TRTypes o) throws TRExecuteException {
+		throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
 	}
 }
 
@@ -294,14 +324,10 @@ class TRAdd extends TROperation {
 	public TRAdd(TRStack<TRTypes> stack, char opc) {
 		super(stack, opc);
 	}
-	public void exec() {
-		TRTypes arg2 = this.stack.pop();
-		TRTypes arg1 = this.stack.pop();
-		this.stack.push(new TRInteger(arg1.getInt() + arg2.getInt()));
-	}
-	private TRInteger exec(TRInteger a, TRInteger b) {
-	}
-	private TRTypes exec(TRTypes a, TRTypes b) {
+	public void exec() throws TRExecuteException {
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		new TRInteger(arg1 + arg2, this.stack).exec();
 	}
 }
 
@@ -309,10 +335,10 @@ class TRSub extends TROperation {
 	public TRSub(TRStack<TRTypes> stack, char opc) {
 		super(stack, opc);
 	}
-	public void exec() {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.push(new TRInteger(arg1.getInt() - arg2.getInt()));
+	public void exec() throws TRExecuteException {
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		new TRInteger(arg1 - arg2, this.stack).exec();
 	}
 }
 
@@ -320,10 +346,10 @@ class TRMul extends TROperation {
 	public TRMul(TRStack<TRTypes> stack, char opc) {
 		super(stack, opc);
 	}
-	public void exec() {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.push(new TRInteger(arg1.getInt() * arg2.getInt()));
+	public void exec() throws TRExecuteException {
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		new TRInteger(arg1 * arg2, this.stack).exec();;
 	}
 }
 
@@ -331,10 +357,10 @@ class TRDiv extends TROperation {
 	public TRDiv(TRStack<TRTypes> stack, char opc) {
 		super(stack, opc);
 	}
-	public void exec() {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.push(new TRInteger(arg1.getInt() / arg2.getInt()));
+	public void exec() throws TRExecuteException {
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		new TRInteger(arg1 / arg2, this.stack).exec();;
 	}
 }
 
@@ -342,10 +368,10 @@ class TRMod extends TROperation {
 	public TRMod(TRStack<TRTypes> stack, char opc) {
 		super(stack, opc);
 	}
-	public void exec() {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.push(new TRInteger(arg1.getInt() % arg2.getInt()));
+	public void exec() throws TRExecuteException {
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		new TRInteger(arg1 % arg2, this.stack).exec();
 	}
 }
 
@@ -354,11 +380,12 @@ class TRAnd extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
 		checkBool(arg2); checkBool(arg1);
-		int erg = arg1.getInt() == 0 && arg2.getInt() == 0 ? 0 : 1;
-		this.stack.push(new TRInteger(erg));
+		int erg = (arg1 == 0) && (arg2 == 0) ? 0 : 1;
+
+		new TRInteger(erg, this.stack).exec();
 	}
 }
 
@@ -367,11 +394,12 @@ class TROr extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
 		checkBool(arg2); checkBool(arg1);
-		int erg = arg1.getInt() == 0 || arg2.getInt() == 0 ? 0 : 1;
-		this.stack.push(new TRInteger(erg));
+		int erg = (arg1 == 0) || (arg2 == 0) ? 0 : 1;
+
+		new TRInteger(erg, this.stack).exec();
 	}
 }
 
@@ -380,21 +408,11 @@ class TREq extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		/* TODO: equals verwenden */
 		TRTypes arg2 = this.stack.pop();
 		TRTypes arg1 = this.stack.pop();
-		int erg;
+		int erg = arg1.eq(arg2) ? 0 : 1;
 
-		if (arg1.isUnit() && arg2.isUnit()) {
-			TRUnit u2 = (TRUnit) arg2;
-			TRUnit u1 = (TRUnit) arg1;
-			erg = u2.getUnit().equals(u1.getUnit()) ? 0 : 1;
-		} else { //TODO: exception on mixed arguments?
-			TRInteger i2 = (TRInteger) arg2;
-			TRInteger i1 = (TRInteger) arg1;
-			erg = i1.getInt() == i2.getInt() ? 0 : 1;
-		}
-		this.stack.push(new TRInteger(erg));
+		new TRInteger(erg, this.stack).exec();
 	}
 }
 
@@ -403,10 +421,11 @@ class TRLt extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		int erg = arg1.getInt() < arg2.getInt() ? 0 : 1;
-		this.stack.push(new TRInteger(erg));
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		int erg = arg1 < arg2 ? 0 : 1;
+
+		new TRInteger(erg, this.stack).exec();
 	}
 }
 
@@ -415,10 +434,11 @@ class TRGt extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		int erg = arg1.getInt() > arg2.getInt() ? 0 : 1;
-		this.stack.push(new TRInteger(erg));
+		int arg2 = this.stack.popInt();
+		int arg1 = this.stack.popInt();
+		int erg = arg1 > arg2 ? 0 : 1;
+
+		new TRInteger(erg, this.stack).exec();
 	}
 }
 
@@ -427,8 +447,9 @@ class TRNeg extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.push(new TRInteger(-1 * arg1.getInt()));
+		int arg1 = this.stack.popInt();
+
+		new TRInteger(-1 * arg1, this.stack).exec();
 	}
 }
 
@@ -439,8 +460,9 @@ class TRCpy extends TROperation {
 	public void exec() throws TRExecuteException {
 		/* note that the assigment starts counting at "1" */
 		int size = this.stack.indexOf(stack.lastElement());
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		int pos = size - arg1.getInt() + 1;
+		int arg1 = this.stack.popInt();
+		int pos = size - arg1 + 1;
+
 		this.stack.push(this.stack.get(pos));
 	}
 }
@@ -452,8 +474,9 @@ class TRDel extends TROperation {
 	public void exec() throws TRExecuteException {
 		//TODO: assert == 1?
 		int size = this.stack.indexOf(this.stack.lastElement());
-		TRInteger arg1 = (TRInteger) this.stack.pop();
-		this.stack.remove(size - arg1.getInt() + 1);
+		int arg1 = this.stack.popInt();
+
+		this.stack.remove(size - arg1 + 1);
 	}
 }
 
@@ -465,49 +488,83 @@ class TRApp extends TROperation {
 		this.inputlist = il;
 	}
 	public void exec() throws TRExecuteException {
-		TRUnit arg1 = (TRUnit) this.stack.pop();
+		String arg1 = this.stack.pop().getUnit();
 
 		try {
-			new TRParser(new TRScanner(arg1.getUnit()), this.stack, this.inputlist).parse();
+			new TRParser(new TRScanner(arg1), this.stack, this.inputlist).parse();
 		} catch (TRScannerException trse) {
 			System.err.println("<scanner> " + trse.getMessage());
 		} catch (TRParserException trpe) {
 			System.err.println("<parser> " + trpe.getMessage());
 		}
+		/* TODO: when those exceptions happens here? */
 	}
 }
 
-class TRUnit extends TRTypes {
+class TRUnit implements TRTypes {
+	private TRStack<TRTypes> stack = null;
 	private String unit;
-	public TRUnit(String str) {
+
+	public TRUnit(String str, TRStack<TRTypes> s) {
 		this.unit = str;
+		this.stack = s;
 	}
+
 	public String getUnit() {
 		return this.unit;
 	}
-	public boolean isStackable() {
-		return true;
+
+	public void exec() {
+		this.stack.push(this);
 	}
-	public boolean isUnit() {
-		return true;
+
+	public int getInt() throws TRExecuteException {
+		throw new TRExecuteException("not a Integer or Bool: \"" + this + "\"");
 	}
+
+	public boolean eq(TRTypes o) throws TRExecuteException {
+		try {
+			return this.unit.equals(o.getUnit());
+		} catch (TRExecuteException e) {
+			throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+		}
+	}
+
 	public String toString() {
 		return '[' + this.unit + ']';
 	}
 }
 
 /* extends Integer isn't allowed, since java.lang.Integer is final :( */
-class TRInteger extends TRTypes {
+class TRInteger implements TRTypes {
+	private TRStack<TRTypes> stack = null;
 	private int i;
-	public TRInteger(int i) {
+
+	public TRInteger(int i, TRStack<TRTypes> s) {
 		this.i = i;
+		this.stack = s;
 	}
+
 	public int getInt() {
 		return this.i;
 	}
-	public boolean isStackable() {
-		return true;
+
+	public void exec() {
+		this.stack.push(this);
 	}
+
+	public String getUnit() throws TRExecuteException {
+		throw new TRExecuteException("not a Unit: \"" + this + "\"");
+	}
+
+	public boolean eq(TRTypes o) throws TRExecuteException {
+		try {
+			return this.i == o.getInt();
+		} catch (TRExecuteException e) {
+			throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+		}
+	}
+
 	public String toString() {
 		return this.i + "";
 	}
