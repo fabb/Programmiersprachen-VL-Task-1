@@ -12,7 +12,7 @@ $(DIST):
 	@mkdir -p $(DIST)/
 
 exec: $(DIST)/$(TARGET)
-	java -cp $(DIST) $(CLASSTARGET)
+	java -cp $(DIST) $(CLASSTARGET) -d
 
 tst: all
 	@make -C tst/

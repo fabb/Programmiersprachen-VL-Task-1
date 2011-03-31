@@ -260,6 +260,11 @@ abstract class TRTypes {
 	public boolean isUnit() {
 		return false;
 	}
+	/* TODO
+	 *
+	public popAsInteger, ...
+	beim Poppen dann das Objekt "fragen"
+	*/
 }
 
 abstract class TROperation extends TRTypes {
@@ -273,6 +278,7 @@ abstract class TROperation extends TRTypes {
 
 	abstract public void exec() throws TRExecuteException;
 
+	/* TODO: static is enough */
 	protected void checkBool(TRInteger i) throws TRExecuteException {
 		int t = i.getInt();
 		if (t != 0 && t != 1)
@@ -289,9 +295,13 @@ class TRAdd extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() {
-		TRInteger arg2 = (TRInteger) this.stack.pop();
-		TRInteger arg1 = (TRInteger) this.stack.pop();
+		TRTypes arg2 = this.stack.pop();
+		TRTypes arg1 = this.stack.pop();
 		this.stack.push(new TRInteger(arg1.getInt() + arg2.getInt()));
+	}
+	private TRInteger exec(TRInteger a, TRInteger b) {
+	}
+	private TRTypes exec(TRTypes a, TRTypes b) {
 	}
 }
 
@@ -370,6 +380,7 @@ class TREq extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
+		/* TODO: equals verwenden */
 		TRTypes arg2 = this.stack.pop();
 		TRTypes arg1 = this.stack.pop();
 		int erg;
