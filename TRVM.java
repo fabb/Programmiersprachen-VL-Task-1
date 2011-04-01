@@ -67,12 +67,12 @@ class TRScanner {
 
 class TRParser {
 	private TRScanner scanner;
-	private TRArrayList<TRTypes> inputlist;
-	private TRStack<TRTypes> stack;
+	private TRArrayList inputlist;
+	private TRStack stack;
 	private char ch = 0;
 	private int pos = 0;
 
-	public TRParser(TRScanner s, TRStack<TRTypes> st, TRArrayList<TRTypes> il) {
+	public TRParser(TRScanner s, TRStack st, TRArrayList il) {
 		this.scanner = s;
 		this.stack = st;
 		this.inputlist = il;
@@ -144,11 +144,11 @@ class TRParser {
 }
 
 public class TRVM {
-	private TRStack<TRTypes> stack;
-	private TRArrayList<TRTypes> inputlist;
+	private TRStack stack;
+	private TRArrayList inputlist;
 	private boolean debug;
 
-	public TRVM(TRStack<TRTypes> st, TRArrayList<TRTypes> il, boolean debug) {
+	public TRVM(TRStack st, TRArrayList il, boolean debug) {
 		this.stack = st;
 		this.inputlist = il;
 		this.debug = debug;
@@ -217,8 +217,8 @@ public class TRVM {
 		}
 		do {
 			try {
-				TRStack<TRTypes> stack = new TRStack<TRTypes>();
-				TRArrayList<TRTypes> inputlist = new TRArrayList<TRTypes>(200);
+				TRStack stack = new TRStack();
+				TRArrayList inputlist = new TRArrayList(200);
 
 				if (filein == null) {
 					input = reader.readLine(cyanc + "$" + resetc + " ");
@@ -245,23 +245,23 @@ public class TRVM {
 	}
 }
 
-class TRStack<E> extends Stack<E> {
+class TRStack extends Stack<TRTypes> {
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
-		for (E i : this) {
+		for (TRTypes i : this) {
 			t.append(i).append(" ");
 		}
 		return t + "";
 	}
 }
 
-class TRArrayList<E> extends ArrayList<E> {
+class TRArrayList extends ArrayList<TRTypes> {
 	public TRArrayList(int s) {
 		super(s);
 	}
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
-		for (E i : this) {
+		for (TRTypes i : this) {
 			t.append(i).append(" ");
 		}
 		return t + "";
@@ -280,9 +280,9 @@ interface TRTypes {
 
 abstract class TROperation implements TRTypes {
 	protected char opc;
-	protected TRStack<TRTypes> stack;
+	protected TRStack stack;
 
-	public TROperation(TRStack<TRTypes> stack, char opc) {
+	public TROperation(TRStack stack, char opc) {
 		this.stack = stack;
 		this.opc = opc;
 	}
@@ -311,7 +311,7 @@ abstract class TROperation implements TRTypes {
 }
 
 class TRAdd extends TROperation {
-	public TRAdd(TRStack<TRTypes> stack, char opc) {
+	public TRAdd(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -322,7 +322,7 @@ class TRAdd extends TROperation {
 }
 
 class TRSub extends TROperation {
-	public TRSub(TRStack<TRTypes> stack, char opc) {
+	public TRSub(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -333,7 +333,7 @@ class TRSub extends TROperation {
 }
 
 class TRMul extends TROperation {
-	public TRMul(TRStack<TRTypes> stack, char opc) {
+	public TRMul(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -344,7 +344,7 @@ class TRMul extends TROperation {
 }
 
 class TRDiv extends TROperation {
-	public TRDiv(TRStack<TRTypes> stack, char opc) {
+	public TRDiv(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -355,7 +355,7 @@ class TRDiv extends TROperation {
 }
 
 class TRMod extends TROperation {
-	public TRMod(TRStack<TRTypes> stack, char opc) {
+	public TRMod(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -366,7 +366,7 @@ class TRMod extends TROperation {
 }
 
 class TRAnd extends TROperation {
-	public TRAnd(TRStack<TRTypes> stack, char opc) {
+	public TRAnd(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -380,7 +380,7 @@ class TRAnd extends TROperation {
 }
 
 class TROr extends TROperation {
-	public TROr(TRStack<TRTypes> stack, char opc) {
+	public TROr(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -394,7 +394,7 @@ class TROr extends TROperation {
 }
 
 class TREq extends TROperation {
-	public TREq(TRStack<TRTypes> stack, char opc) {
+	public TREq(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -407,7 +407,7 @@ class TREq extends TROperation {
 }
 
 class TRLt extends TROperation {
-	public TRLt(TRStack<TRTypes> stack, char opc) {
+	public TRLt(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -420,7 +420,7 @@ class TRLt extends TROperation {
 }
 
 class TRGt extends TROperation {
-	public TRGt(TRStack<TRTypes> stack, char opc) {
+	public TRGt(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -433,7 +433,7 @@ class TRGt extends TROperation {
 }
 
 class TRNeg extends TROperation {
-	public TRNeg(TRStack<TRTypes> stack, char opc) {
+	public TRNeg(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -444,7 +444,7 @@ class TRNeg extends TROperation {
 }
 
 class TRCpy extends TROperation {
-	public TRCpy(TRStack<TRTypes> stack, char opc) {
+	public TRCpy(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -458,7 +458,7 @@ class TRCpy extends TROperation {
 }
 
 class TRDel extends TROperation {
-	public TRDel(TRStack<TRTypes> stack, char opc) {
+	public TRDel(TRStack stack, char opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -471,9 +471,9 @@ class TRDel extends TROperation {
 }
 
 class TRApp extends TROperation {
-	private TRArrayList<TRTypes> inputlist;
+	private TRArrayList inputlist;
 
-	public TRApp(TRStack<TRTypes> stack, TRArrayList<TRTypes> il, char opc) {
+	public TRApp(TRStack stack, TRArrayList il, char opc) {
 		super(stack, opc);
 		this.inputlist = il;
 	}
@@ -492,10 +492,10 @@ class TRApp extends TROperation {
 }
 
 class TRUnit implements TRTypes {
-	private TRStack<TRTypes> stack = null;
+	private TRStack stack = null;
 	private String unit;
 
-	public TRUnit(String str, TRStack<TRTypes> s) {
+	public TRUnit(String str, TRStack s) {
 		this.unit = str;
 		this.stack = s;
 	}
@@ -527,10 +527,10 @@ class TRUnit implements TRTypes {
 
 /* extends Integer isn't allowed, since java.lang.Integer is final :( */
 class TRInteger implements TRTypes {
-	private TRStack<TRTypes> stack = null;
+	private TRStack stack = null;
 	private int i;
 
-	public TRInteger(int i, TRStack<TRTypes> s) {
+	public TRInteger(int i, TRStack s) {
 		this.i = i;
 		this.stack = s;
 	}
