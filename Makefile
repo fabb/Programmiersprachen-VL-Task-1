@@ -1,18 +1,19 @@
 TARGET := TRVM.class
 CLASSTARGET := $(basename $(TARGET))
 DIST := dist
+LIB := lib/*
 
 all: $(DIST)/$(TARGET)
 
 $(DIST)/%.class: %.java $(DIST)
 	@echo "COMPILE  $<"
-	@javac -d $(DIST)/ $<
+	javac -cp $(LIB) -d $(DIST)/ $<
 
 $(DIST):
 	@mkdir -p $(DIST)/
 
 exec: $(DIST)/$(TARGET)
-	java -cp $(DIST) $(CLASSTARGET) -d
+	java -cp $(LIB):$(DIST) $(CLASSTARGET) -d
 
 tst: all
 	@make -C tst/

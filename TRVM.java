@@ -1,6 +1,8 @@
 import java.util.*;
 import java.io.*;
 
+import jline.*;
+
 class TRScanner {
 	public final static int S_num = 1; // num
 	public final static int S_eof = 2; // EOF
@@ -177,10 +179,9 @@ public class TRVM {
 		String redc = ((char) 27) + "[31m"; //red color
 		String cyanc = ((char) 27) + "[36m"; //cyan color
 		String resetc = ((char) 27) + "[0m"; //reset color
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		ConsoleReader reader = null;
 		BufferedReader filein = null;
 		int ret = 1;
-		String input = "";
 		boolean debug = false;
 
 		for (int i = 0; i < args.length; i++) {
@@ -204,15 +205,26 @@ public class TRVM {
 				System.exit(1);
 			}
 		}
-		do {
-			if (filein == null)
-				System.out.print(cyanc + "$" + resetc + " ");
+
+		String input = "";
+		if (filein == null) {
 			try {
-				BufferedReader ta = filein == null ? br : filein;
+				reader = new ConsoleReader();
+			} catch (IOException ioe) {
+				System.err.println(redc + "<main> " + ioe.getMessage() + resetc);
+				System.exit(3);
+			}
+		}
+		do {
+			try {
 				TRStack<TRTypes> stack = new TRStack<TRTypes>();
 				TRArrayList<TRTypes> inputlist = new TRArrayList<TRTypes>(200);
 
-				input = ta.readLine();
+				if (filein == null) {
+					input = reader.readLine(cyanc + "$" + resetc + " ");
+				} else {
+					input = filein.readLine();
+				}
 				if (input != null) {
 					ret = new TRParser(new TRScanner(input), stack, inputlist).parse();
 					new TRVM(stack, inputlist, debug).start();
