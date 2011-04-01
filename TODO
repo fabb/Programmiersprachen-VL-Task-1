@@ -4,15 +4,11 @@ TODO
 General
 -------
 
-* Choose English or German for Comments, Commit Messages etc.
-* Discuss Architecture
 * Write Preconditions, Postconditions and Invariants as Function Comments
 * Refactoring
-* Mr. Carsten still annoying me (see ~ Line 245)
+* s/TRTypes/TRType
 
 Features
 --------
 
 * Facilitate Testability with JUnit
-* GNU readline like input on prompt. There're JNI bindings, but they aren't
-  portable of course :( JLine sounds promising though
