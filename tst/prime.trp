@@ -22,7 +22,7 @@ Nachteile:
 
 #include "common.h"
 
-#define INPUT 7
+#define INPUT 98807
 #define BODY \
 	[ \
 		1- \ 	// den Iterator (steht am Stack immer nach INPUT und BODY) in-place dekrementieren - wird auch vor dem ersten Vergleich benötigt, da INPUT%INPUT natürlich 0 ergibt...

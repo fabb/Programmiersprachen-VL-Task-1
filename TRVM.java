@@ -253,28 +253,6 @@ class TRStack<E> extends Stack<E> {
 		}
 		return t + "";
 	}
-
-	/* TODO: ... wtf @ Mr. Carsten :(
-	 * warum kann ich hier das nicht ohne casten machen?
-	 * gebe ich den Cast weg, dann kommt folgender Fehler:
-	 *
-	 * > TRVM.java:246: cannot find symbol
-	 * > symbol  : method getInt()
-	 * > location: class java.lang.Object
-	 * >         return (pop()).getInt();
-	 * >                       ^
-	 * > 1 error
-	 *
-	 * FABB, ERKLAER ES MIR!!!!!1111
-	 * ich verstehe den technischen Grund dahinter nicht.
-	 *
-	 * falls es wir nicht hinkriegen sollten:
-	 * (1) wir koennten selber einen Stack implementieren, oder
-	 * (2) wir bauen einen Wrapper um Stack<TRTypes>
-	 */
-	public int popInt() throws TRExecuteException {
-		return ((TRTypes) pop()).getInt();
-	}
 }
 
 class TRArrayList<E> extends ArrayList<E> {
@@ -337,8 +315,8 @@ class TRAdd extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		new TRInteger(arg1 + arg2, this.stack).exec();
 	}
 }
@@ -348,8 +326,8 @@ class TRSub extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		new TRInteger(arg1 - arg2, this.stack).exec();
 	}
 }
@@ -359,8 +337,8 @@ class TRMul extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		new TRInteger(arg1 * arg2, this.stack).exec();;
 	}
 }
@@ -370,8 +348,8 @@ class TRDiv extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		new TRInteger(arg1 / arg2, this.stack).exec();;
 	}
 }
@@ -381,8 +359,8 @@ class TRMod extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		new TRInteger(arg1 % arg2, this.stack).exec();
 	}
 }
@@ -392,8 +370,8 @@ class TRAnd extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) && (arg2 == 0) ? 0 : 1;
 
@@ -406,8 +384,8 @@ class TROr extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) || (arg2 == 0) ? 0 : 1;
 
@@ -433,8 +411,8 @@ class TRLt extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		int erg = arg1 < arg2 ? 0 : 1;
 
 		new TRInteger(erg, this.stack).exec();
@@ -446,8 +424,8 @@ class TRGt extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg2 = this.stack.popInt();
-		int arg1 = this.stack.popInt();
+		int arg2 = this.stack.pop().getInt();
+		int arg1 = this.stack.pop().getInt();
 		int erg = arg1 > arg2 ? 0 : 1;
 
 		new TRInteger(erg, this.stack).exec();
@@ -459,7 +437,7 @@ class TRNeg extends TROperation {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
-		int arg1 = this.stack.popInt();
+		int arg1 = this.stack.pop().getInt();
 
 		new TRInteger(-1 * arg1, this.stack).exec();
 	}
@@ -472,7 +450,7 @@ class TRCpy extends TROperation {
 	public void exec() throws TRExecuteException {
 		/* note that the assigment starts counting at "1" */
 		int size = this.stack.indexOf(stack.lastElement());
-		int arg1 = this.stack.popInt();
+		int arg1 = this.stack.pop().getInt();
 		int pos = size - arg1 + 1;
 
 		this.stack.push(this.stack.get(pos));
@@ -486,7 +464,7 @@ class TRDel extends TROperation {
 	public void exec() throws TRExecuteException {
 		//TODO: assert == 1?
 		int size = this.stack.indexOf(this.stack.lastElement());
-		int arg1 = this.stack.popInt();
+		int arg1 = this.stack.pop().getInt();
 
 		this.stack.remove(size - arg1 + 1);
 	}
