@@ -17,7 +17,7 @@ exec: $(DIST)/$(TARGET)
 
 tst: all
 	@make -C tst/
-	for i in `ls tst/*.tr`; do echo $$i:; java -cp $(DIST) $(CLASSTARGET) -f $$i; done
+	for i in `ls tst/*.tr`; do echo $$i:; java -cp $(LIB):$(DIST) $(CLASSTARGET) -f $$i; done
 
 .PHONY: clean tst exec
 clean:
