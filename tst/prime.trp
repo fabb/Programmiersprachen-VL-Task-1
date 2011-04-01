@@ -42,7 +42,9 @@ Nachteile:
 
 
 /* Programm */
-INPUT BODY \ 	// Primzahl und rekursives Programm welches bis zum Schluss am Stack bleiben
+INPUT \        // Primzahl
+	2/ 1+ \        // Es reicht von p/2 auf Teilbarkeit zu überprüfen; Inkrementieren ist notwendig, da im rekursiven Programm am Anfang inkrementiert wird
+	BODY \ 	// Rekursives Programm welches bis zum Schluss am Stack bleiben
 	3c 3c \ 	// Kopien von INPUT und BODY mit welchen gearbeitet wird
 	a \ 		// erster Aufruf von BODY
 	3d 3d 3d 	// nachdem BODY terminiert ist und entweder 0 oder 1 zurückgegeben hat, werden das ursprüngliche INPUT BODY und der aktuelle Iterator i gelöscht und es bleibt nur das Ergebnis übrig
