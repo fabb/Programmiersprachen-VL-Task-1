@@ -119,10 +119,10 @@ class Parser {
 		localil.add(new Unit(unit + "", this.stack));
 	}
 
-	public int parse() throws ScannerException, ParserException {
+	public ParserCode parse() throws ScannerException, ParserException {
 		InputList localil = new InputList(10);
 		Token ch;
-		int ret = 1;
+		ParserCode ret = ParserCode.RUN;
 		do {
 			ch = this.next();
 			switch(ch) {
@@ -149,7 +149,7 @@ class Parser {
 				case S_del: localil.add(new Deletion(this.stack, ch)); break;
 				case S_app:
 					localil.add(new Application(this.stack, this.inputlist, ch)); break;
-				case S_qit: ret = 0;
+				case S_qit: ret = ParserCode.QUIT;
 					/* FALLTHROUGH */
 				case S_eof: break;
 				default: /* TODO: is this reachable atm? */
@@ -177,6 +177,10 @@ enum ConsoleColor {
 	public String color(String str) {
 		return this.consolecode + str + ConsoleColor.Reset;
 	}
+}
+
+enum ParserCode {
+	QUIT, RUN;
 }
 
 public class VirtualMachine {
@@ -212,7 +216,6 @@ public class VirtualMachine {
 	public static void main(String args[]) {
 		ConsoleReader reader = null;
 		BufferedReader filein = null;
-		int ret = 1;
 		boolean debug = false;
 
 		for (int i = 0; i < args.length; i++) {
@@ -237,7 +240,7 @@ public class VirtualMachine {
 			}
 		}
 
-		String input = "";
+		String input = null;
 		if (filein == null) {
 			try {
 				reader = new ConsoleReader();
@@ -246,6 +249,8 @@ public class VirtualMachine {
 				System.exit(3);
 			}
 		}
+
+		ParserCode ret = ParserCode.RUN;
 		do {
 			try {
 				Stack stack = new Stack();
@@ -260,7 +265,7 @@ public class VirtualMachine {
 					ret = new Parser(new Scanner(input), stack, inputlist).parse();
 					new VirtualMachine(stack, inputlist, debug).start();
 				} else { // input was EOF (CTRL + D)
-					ret = 0;
+					ret = ParserCode.QUIT;
 				}
 			} catch (IOException e) {
 				System.err.println(ConsoleColor.Red.color("<main> " + e.getMessage()));
@@ -271,7 +276,7 @@ public class VirtualMachine {
 			} catch (ExecuteException tree) {
 				System.err.println(ConsoleColor.Red.color("<vm> " + tree.getMessage()));
 			}
-		} while((ret > 0) && (filein == null));
+		} while((ret != ParserCode.QUIT) && (filein == null));
 		System.exit(0);
 	}
 }
@@ -480,11 +485,14 @@ class Copy extends Operation {
 	}
 	public void exec() throws ExecuteException {
 		/* note that the assignment starts counting at "1" */
-		int size = this.stack.indexOf(stack.lastElement());
 		int arg1 = this.stack.pop().getInt();
-		int pos = size - arg1 + 1;
+		int pos = this.stack.size() - arg1 + 1;
 
-		this.stack.push(this.stack.get(pos));
+		try {
+			this.stack.push(this.stack.get(pos));
+		} catch(ArrayIndexOutOfBoundsException e) {
+			throw new ExecuteException("<c>: invalid index \"" + arg1 + "\"");
+		}
 	}
 }
 
@@ -494,10 +502,13 @@ class Deletion extends Operation {
 	}
 	public void exec() throws ExecuteException {
 		//TODO: assert == 1?
-		int size = this.stack.indexOf(this.stack.lastElement());
 		int arg1 = this.stack.pop().getInt();
 
-		this.stack.remove(size - arg1 + 1);
+		try {
+			this.stack.remove(this.stack.size() - arg1 + 1);
+		} catch(ArrayIndexOutOfBoundsException e) {
+			throw new ExecuteException("<d>: invalid index \"" + arg1 + "\"");
+		}
 	}
 }
 
