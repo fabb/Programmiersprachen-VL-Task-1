@@ -5,8 +5,7 @@ General
 -------
 
 * Write Preconditions, Postconditions and Invariants as Function Comments
-* Refactoring
-* s/TRTypes/TRType
+* Refactoring: seperate Classes in different Files
 * use Java Annotations (e.g. @Override)
 * JavaDoc
 

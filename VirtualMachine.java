@@ -1,5 +1,9 @@
-import java.util.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
+import java.util.ArrayList;
 
 import jline.*;
 
@@ -31,10 +35,10 @@ enum Token {
 	}
 }
 
-class TRScanner {
+class Scanner {
 	private StreamTokenizer st;
 
-	public TRScanner(String input) {
+	public Scanner(String input) {
 		BufferedReader br = new BufferedReader(new StringReader(input));
 		st = new StreamTokenizer(br);
 		st.ordinaryChar('/');
@@ -48,19 +52,19 @@ class TRScanner {
 		st.ordinaryChar(Token.S_qit.getToken());
 	}
 
-	public Token scan() throws TRScannerException {
+	public Token scan() throws ScannerException {
 		try {
 			switch (st.nextToken()) {
 				case StreamTokenizer.TT_WORD:
-					throw new TRScannerException("Invalid Instruction/Token: \"" + st.sval + "\"");
+					throw new ScannerException("Invalid Instruction/Token: \"" + st.sval + "\"");
 				case StreamTokenizer.TT_EOL:
-					throw new TRScannerException("What have you done?");
+					throw new ScannerException("What have you done?");
 				case StreamTokenizer.TT_EOF:
 					return Token.S_eof;
 				case StreamTokenizer.TT_NUMBER:
 					Token t = Token.S_num;
 					if (st.nval > Integer.MAX_VALUE || st.nval < Integer.MIN_VALUE) {
-						throw new TRScannerException("Value too small/big: \"" + st.sval + "\"");
+						throw new ScannerException("Value too small/big: \"" + st.sval + "\"");
 					}
 					t.setIVal((int) st.nval);
 					return t;
@@ -79,28 +83,28 @@ class TRScanner {
 	}
 }
 
-class TRParser {
-	private TRScanner scanner;
-	private TRArrayList inputlist;
-	private TRStack stack;
+class Parser {
+	private Scanner scanner;
+	private InputList inputlist;
+	private Stack stack;
 
-	public TRParser(TRScanner s, TRStack st, TRArrayList il) {
+	public Parser(Scanner s, Stack st, InputList il) {
 		this.scanner = s;
 		this.stack = st;
 		this.inputlist = il;
 	}
 
-	private Token next() throws TRScannerException {
+	private Token next() throws ScannerException {
 		return scanner.scan();
 	}
 
-	private void unit(TRArrayList localil) throws TRScannerException, TRParserException {
+	private void unit(InputList localil) throws ScannerException, ParserException {
 		StringBuilder unit = new StringBuilder("");
 		Token ch = this.next();
 		int i = 0;
 		while (ch != Token.S_rbr || i > 0) {
 			if (ch == Token.S_eof)
-				throw new TRParserException("missing ']'. probably malformed expression?");
+				throw new ParserException("missing ']'. probably malformed expression?");
 			else if (ch == Token.S_lbr)
 				i++;
 			else if (ch == Token.S_rbr)
@@ -112,44 +116,44 @@ class TRParser {
 			}
 			ch = this.next();
 		}
-		localil.add(new TRUnit(unit + "", this.stack));
+		localil.add(new Unit(unit + "", this.stack));
 	}
 
-	public int parse() throws TRScannerException, TRParserException {
-		TRArrayList localil = new TRArrayList(10);
+	public int parse() throws ScannerException, ParserException {
+		InputList localil = new InputList(10);
 		Token ch;
 		int ret = 1;
 		do {
 			ch = this.next();
 			switch(ch) {
 				case S_lbr: unit(localil); break;
-				case S_rbr: throw new TRParserException("Syntax Error: ]");
+				case S_rbr: throw new ParserException("Syntax Error: ]");
 
 				case S_num:
-					localil.add(new TRInteger(ch.getIVal(), this.stack)); break;
+					localil.add(new Int(ch.getIVal(), this.stack)); break;
 
-				case S_add: localil.add(new TRAdd(this.stack, ch)); break;
-				case S_sub: localil.add(new TRSub(this.stack, ch)); break;
-				case S_mul: localil.add(new TRMul(this.stack, ch)); break;
-				case S_div: localil.add(new TRDiv(this.stack, ch)); break;
-				case S_mod: localil.add(new TRMod(this.stack, ch)); break;
+				case S_add: localil.add(new Addition(this.stack, ch)); break;
+				case S_sub: localil.add(new Subtraction(this.stack, ch)); break;
+				case S_mul: localil.add(new Multiplication(this.stack, ch)); break;
+				case S_div: localil.add(new Division(this.stack, ch)); break;
+				case S_mod: localil.add(new Modulus(this.stack, ch)); break;
 
-				case S_and: localil.add(new TRAnd(this.stack, ch)); break;
-				case S_or : localil.add(new TROr(this.stack, ch)); break;
-				case S_eq : localil.add(new TREq(this.stack, ch)); break;
-				case S_lt : localil.add(new TRLt(this.stack, ch)); break;
-				case S_gt : localil.add(new TRGt(this.stack, ch)); break;
+				case S_and: localil.add(new And(this.stack, ch)); break;
+				case S_or : localil.add(new Or(this.stack, ch)); break;
+				case S_eq : localil.add(new Equal(this.stack, ch)); break;
+				case S_lt : localil.add(new LessThan(this.stack, ch)); break;
+				case S_gt : localil.add(new GreaterThan(this.stack, ch)); break;
 
-				case S_neg: localil.add(new TRNeg(this.stack, ch)); break;
-				case S_cpy: localil.add(new TRCpy(this.stack, ch)); break;
-				case S_del: localil.add(new TRDel(this.stack, ch)); break;
+				case S_neg: localil.add(new Negation(this.stack, ch)); break;
+				case S_cpy: localil.add(new Copy(this.stack, ch)); break;
+				case S_del: localil.add(new Deletion(this.stack, ch)); break;
 				case S_app:
-					localil.add(new TRApp(this.stack, this.inputlist, ch)); break;
+					localil.add(new Application(this.stack, this.inputlist, ch)); break;
 				case S_qit: ret = 0;
 					/* FALLTHROUGH */
 				case S_eof: break;
 				default: /* TODO: is this reachable atm? */
-					throw new TRParserException("unknown instruction: " +
+					throw new ParserException("unknown instruction: " +
 							ch.getToken() + " (" + (int) ch.getToken() + ")");
 			}
 		} while (ch != Token.S_eof && ch != Token.S_qit);
@@ -159,18 +163,18 @@ class TRParser {
 	}
 }
 
-public class TRVM {
-	private TRStack stack;
-	private TRArrayList inputlist;
+public class VirtualMachine {
+	private Stack stack;
+	private InputList inputlist;
 	private boolean debug;
 
-	public TRVM(TRStack st, TRArrayList il, boolean debug) {
+	public VirtualMachine(Stack st, InputList il, boolean debug) {
 		this.stack = st;
 		this.inputlist = il;
 		this.debug = debug;
 	}
 
-	public void start() throws TRExecuteException {
+	public void start() throws ExecuteException {
 		boolean first = true;
 
 		String redc = ((char) 27) + "[31m"; //red color
@@ -183,7 +187,7 @@ public class TRVM {
 				System.out.println(greenc + ">" + resetc + " " + this.stack +
 						redc + "#" + resetc + " " + this.inputlist);
 			}
-			TRTypes i = inputlist.get(0);
+			Type i = inputlist.get(0);
 			inputlist.remove(0);
 			i.exec();
 		}
@@ -233,8 +237,8 @@ public class TRVM {
 		}
 		do {
 			try {
-				TRStack stack = new TRStack();
-				TRArrayList inputlist = new TRArrayList(200);
+				Stack stack = new Stack();
+				InputList inputlist = new InputList(200);
 
 				if (filein == null) {
 					input = reader.readLine(cyanc + "$" + resetc + " ");
@@ -242,18 +246,18 @@ public class TRVM {
 					input = filein.readLine();
 				}
 				if (input != null) {
-					ret = new TRParser(new TRScanner(input), stack, inputlist).parse();
-					new TRVM(stack, inputlist, debug).start();
+					ret = new Parser(new Scanner(input), stack, inputlist).parse();
+					new VirtualMachine(stack, inputlist, debug).start();
 				} else { // input was EOF (CTRL + D)
 					ret = 0;
 				}
 			} catch (IOException e) {
 				System.err.println(redc + "<main> " + e.getMessage() + resetc);
-			} catch (TRScannerException trse) {
+			} catch (ScannerException trse) {
 				System.err.println(redc + "<scanner> " + trse.getMessage() + resetc);
-			} catch (TRParserException trpe) {
+			} catch (ParserException trpe) {
 				System.err.println(redc + "<parser> " + trpe.getMessage() + resetc);
-			} catch (TRExecuteException tree) {
+			} catch (ExecuteException tree) {
 				System.err.println(redc + "<vm> " + tree.getMessage() + resetc);
 			}
 		} while((ret > 0) && (filein == null));
@@ -261,210 +265,210 @@ public class TRVM {
 	}
 }
 
-class TRStack extends Stack<TRTypes> {
+class Stack extends java.util.Stack<Type> {
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
-		for (TRTypes i : this) {
+		for (Type i : this) {
 			t.append(i).append(" ");
 		}
 		return t + "";
 	}
 }
 
-class TRArrayList extends ArrayList<TRTypes> {
-	public TRArrayList(int s) {
+class InputList extends ArrayList<Type> {
+	public InputList(int s) {
 		super(s);
 	}
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
-		for (TRTypes i : this) {
+		for (Type i : this) {
 			t.append(i).append(" ");
 		}
 		return t + "";
 	}
 }
 
-interface TRTypes {
-	public void exec() throws TRExecuteException;
+interface Type {
+	public void exec() throws ExecuteException;
 
-	public int getInt() throws TRExecuteException;
+	public int getInt() throws ExecuteException;
 
-	public String getUnit() throws TRExecuteException;
+	public String getUnit() throws ExecuteException;
 
-	public boolean eq(TRTypes o) throws TRExecuteException;
+	public boolean eq(Type o) throws ExecuteException;
 }
 
-abstract class TROperation implements TRTypes {
+abstract class Operation implements Type {
 	protected Token opc;
-	protected TRStack stack;
+	protected Stack stack;
 
-	public TROperation(TRStack stack, Token opc) {
+	public Operation(Stack stack, Token opc) {
 		this.stack = stack;
 		this.opc = opc;
 	}
 
-	protected static void checkBool(int i) throws TRExecuteException {
+	protected static void checkBool(int i) throws ExecuteException {
 		if (i != 0 && i != 1)
-			throw new TRExecuteException("Not a valid Boolean: \"" + i + "\"");
+			throw new ExecuteException("Not a valid Boolean: \"" + i + "\"");
 	}
 
 	public String toString() {
 		return "" + this.opc.getToken();
 	}
 
-	public int getInt() throws TRExecuteException {
-		throw new TRExecuteException("Not an Integer or Boolean: \"" + this + "\"");
+	public int getInt() throws ExecuteException {
+		throw new ExecuteException("Not an Integer or Boolean: \"" + this + "\"");
 	}
 
-	public String getUnit() throws TRExecuteException {
-		throw new TRExecuteException("Not an Unit: \"" + this + "\"");
+	public String getUnit() throws ExecuteException {
+		throw new ExecuteException("Not an Unit: \"" + this + "\"");
 	}
 
 	/* Comparing operations doesn't make sense in this context */
-	public boolean eq(TRTypes o) throws TRExecuteException {
-		throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+	public boolean eq(Type o) throws ExecuteException {
+		throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
 	}
 }
 
-class TRAdd extends TROperation {
-	public TRAdd(TRStack stack, Token opc) {
+class Addition extends Operation {
+	public Addition(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
-		new TRInteger(arg1 + arg2, this.stack).exec();
+		new Int(arg1 + arg2, this.stack).exec();
 	}
 }
 
-class TRSub extends TROperation {
-	public TRSub(TRStack stack, Token opc) {
+class Subtraction extends Operation {
+	public Subtraction(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
-		new TRInteger(arg1 - arg2, this.stack).exec();
+		new Int(arg1 - arg2, this.stack).exec();
 	}
 }
 
-class TRMul extends TROperation {
-	public TRMul(TRStack stack, Token opc) {
+class Multiplication extends Operation {
+	public Multiplication(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
-		new TRInteger(arg1 * arg2, this.stack).exec();;
+		new Int(arg1 * arg2, this.stack).exec();;
 	}
 }
 
-class TRDiv extends TROperation {
-	public TRDiv(TRStack stack, Token opc) {
+class Division extends Operation {
+	public Division(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
-		new TRInteger(arg1 / arg2, this.stack).exec();;
+		new Int(arg1 / arg2, this.stack).exec();;
 	}
 }
 
-class TRMod extends TROperation {
-	public TRMod(TRStack stack, Token opc) {
+class Modulus extends Operation {
+	public Modulus(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
-		new TRInteger(arg1 % arg2, this.stack).exec();
+		new Int(arg1 % arg2, this.stack).exec();
 	}
 }
 
-class TRAnd extends TROperation {
-	public TRAnd(TRStack stack, Token opc) {
+class And extends Operation {
+	public And(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) && (arg2 == 0) ? 0 : 1;
 
-		new TRInteger(erg, this.stack).exec();
+		new Int(erg, this.stack).exec();
 	}
 }
 
-class TROr extends TROperation {
-	public TROr(TRStack stack, Token opc) {
+class Or extends Operation {
+	public Or(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) || (arg2 == 0) ? 0 : 1;
 
-		new TRInteger(erg, this.stack).exec();
+		new Int(erg, this.stack).exec();
 	}
 }
 
-class TREq extends TROperation {
-	public TREq(TRStack stack, Token opc) {
+class Equal extends Operation {
+	public Equal(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
-		TRTypes arg2 = this.stack.pop();
-		TRTypes arg1 = this.stack.pop();
+	public void exec() throws ExecuteException {
+		Type arg2 = this.stack.pop();
+		Type arg1 = this.stack.pop();
 		int erg = arg1.eq(arg2) ? 0 : 1;
 
-		new TRInteger(erg, this.stack).exec();
+		new Int(erg, this.stack).exec();
 	}
 }
 
-class TRLt extends TROperation {
-	public TRLt(TRStack stack, Token opc) {
+class LessThan extends Operation {
+	public LessThan(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
 		int erg = arg1 < arg2 ? 0 : 1;
 
-		new TRInteger(erg, this.stack).exec();
+		new Int(erg, this.stack).exec();
 	}
 }
 
-class TRGt extends TROperation {
-	public TRGt(TRStack stack, Token opc) {
+class GreaterThan extends Operation {
+	public GreaterThan(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg2 = this.stack.pop().getInt();
 		int arg1 = this.stack.pop().getInt();
 		int erg = arg1 > arg2 ? 0 : 1;
 
-		new TRInteger(erg, this.stack).exec();
+		new Int(erg, this.stack).exec();
 	}
 }
 
-class TRNeg extends TROperation {
-	public TRNeg(TRStack stack, Token opc) {
+class Negation extends Operation {
+	public Negation(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		int arg1 = this.stack.pop().getInt();
 
-		new TRInteger(-1 * arg1, this.stack).exec();
+		new Int(-1 * arg1, this.stack).exec();
 	}
 }
 
-class TRCpy extends TROperation {
-	public TRCpy(TRStack stack, Token opc) {
+class Copy extends Operation {
+	public Copy(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
-		/* note that the assigment starts counting at "1" */
+	public void exec() throws ExecuteException {
+		/* note that the assignment starts counting at "1" */
 		int size = this.stack.indexOf(stack.lastElement());
 		int arg1 = this.stack.pop().getInt();
 		int pos = size - arg1 + 1;
@@ -473,11 +477,11 @@ class TRCpy extends TROperation {
 	}
 }
 
-class TRDel extends TROperation {
-	public TRDel(TRStack stack, Token opc) {
+class Deletion extends Operation {
+	public Deletion(Stack stack, Token opc) {
 		super(stack, opc);
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		//TODO: assert == 1?
 		int size = this.stack.indexOf(this.stack.lastElement());
 		int arg1 = this.stack.pop().getInt();
@@ -486,32 +490,32 @@ class TRDel extends TROperation {
 	}
 }
 
-class TRApp extends TROperation {
-	private TRArrayList inputlist;
+class Application extends Operation {
+	private InputList inputlist;
 
-	public TRApp(TRStack stack, TRArrayList il, Token opc) {
+	public Application(Stack stack, InputList il, Token opc) {
 		super(stack, opc);
 		this.inputlist = il;
 	}
-	public void exec() throws TRExecuteException {
+	public void exec() throws ExecuteException {
 		String arg1 = this.stack.pop().getUnit();
 
 		try {
-			new TRParser(new TRScanner(arg1), this.stack, this.inputlist).parse();
-		} catch (TRScannerException trse) {
+			new Parser(new Scanner(arg1), this.stack, this.inputlist).parse();
+		} catch (ScannerException trse) {
 			System.err.println("<scanner> " + trse.getMessage());
-		} catch (TRParserException trpe) {
+		} catch (ParserException trpe) {
 			System.err.println("<parser> " + trpe.getMessage());
 		}
 		/* TODO: when those exceptions happens here? */
 	}
 }
 
-class TRUnit implements TRTypes {
-	private TRStack stack = null;
+class Unit implements Type {
+	private Stack stack = null;
 	private String unit;
 
-	public TRUnit(String str, TRStack s) {
+	public Unit(String str, Stack s) {
 		this.unit = str;
 		this.stack = s;
 	}
@@ -524,15 +528,15 @@ class TRUnit implements TRTypes {
 		this.stack.push(this);
 	}
 
-	public int getInt() throws TRExecuteException {
-		throw new TRExecuteException("not a Integer or Bool: \"" + this + "\"");
+	public int getInt() throws ExecuteException {
+		throw new ExecuteException("not a Integer or Bool: \"" + this + "\"");
 	}
 
-	public boolean eq(TRTypes o) throws TRExecuteException {
+	public boolean eq(Type o) throws ExecuteException {
 		try {
 			return this.unit.equals(o.getUnit());
-		} catch (TRExecuteException e) {
-			throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+		} catch (ExecuteException e) {
+			throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
 		}
 	}
 
@@ -542,11 +546,11 @@ class TRUnit implements TRTypes {
 }
 
 /* extends Integer isn't allowed, since java.lang.Integer is final :( */
-class TRInteger implements TRTypes {
-	private TRStack stack = null;
+class Int implements Type {
+	private Stack stack = null;
 	private int i;
 
-	public TRInteger(int i, TRStack s) {
+	public Int(int i, Stack s) {
 		this.i = i;
 		this.stack = s;
 	}
@@ -559,15 +563,15 @@ class TRInteger implements TRTypes {
 		this.stack.push(this);
 	}
 
-	public String getUnit() throws TRExecuteException {
-		throw new TRExecuteException("not a Unit: \"" + this + "\"");
+	public String getUnit() throws ExecuteException {
+		throw new ExecuteException("not a Unit: \"" + this + "\"");
 	}
 
-	public boolean eq(TRTypes o) throws TRExecuteException {
+	public boolean eq(Type o) throws ExecuteException {
 		try {
 			return this.i == o.getInt();
-		} catch (TRExecuteException e) {
-			throw new TRExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+		} catch (ExecuteException e) {
+			throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
 		}
 	}
 
@@ -576,21 +580,20 @@ class TRInteger implements TRTypes {
 	}
 }
 
-class TRScannerException extends Exception {
-	public TRScannerException(String str) {
+class ScannerException extends Exception {
+	public ScannerException(String str) {
 		super(str);
 	}
 }
 
-class TRParserException extends Exception {
-	public TRParserException(String str) {
+class ParserException extends Exception {
+	public ParserException(String str) {
 		super(str);
 	}
 }
 
-class TRExecuteException extends Exception {
-	public TRExecuteException(String str) {
+class ExecuteException extends Exception {
+	public ExecuteException(String str) {
 		super(str);
 	}
 }
-

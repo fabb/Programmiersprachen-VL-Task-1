@@ -1,4 +1,4 @@
-TARGET := TRVM.class
+TARGET := VirtualMachine.class
 CLASSTARGET := $(basename $(TARGET))
 DIST := dist
 LIB := lib/*
