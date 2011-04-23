@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.ArrayList;
+import static java.lang.Math.max;
 
 import jline.*;
 
@@ -283,10 +284,15 @@ public class VirtualMachine {
 class Stack extends java.util.Stack<Type> {
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
-		for (Type i : this) {
+		int size = this.size();
+		for (Type i : this.subList(max(0, size - 4), size)) {
 			t.append(i).append(" ");
 		}
-		return t + "";
+		if (size > 4) {
+			return ConsoleColor.Cyan.color("{" + (size - 4) + "}") + " " + t;
+		} else {
+			return t + "";
+		}
 	}
 }
 
