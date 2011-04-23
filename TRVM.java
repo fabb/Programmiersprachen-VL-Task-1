@@ -3,30 +3,35 @@ import java.io.*;
 
 import jline.*;
 
+enum Token {
+	S_num, S_eof,
+	S_lbr('['), S_rbr(']'),
+	S_add('+'), S_sub('-'), S_mul('*'), S_div('/'), S_mod('%'),
+	S_and('&'), S_or ('|'), S_eq ('='),
+	S_lt ('<'), S_gt ('>'), S_neg('~'),
+	S_cpy('c'), S_del('d'), S_app('a'), S_qit('q');
+
+	private char token;
+	private int ival;
+
+	public char getToken() {
+		return this.token;
+	}
+	public void setIVal(int ival) {
+		this.ival = ival;
+	}
+	public int getIVal() {
+		return this.ival;
+	}
+	private Token() {
+		this.token = '_'; // dummy
+	}
+	private Token(char token) {
+		this.token = token;
+	}
+}
+
 class TRScanner {
-	public final static int S_num = 1; // num
-	public final static int S_eof = 2; // EOF
-	public final static int S_lbr = '[';
-	public final static int S_rbr = ']';
-	public final static int S_add = '+';
-	public final static int S_sub = '-';
-	public final static int S_mul = '*';
-	public final static int S_div = '/';
-	public final static int S_mod = '%';
-	public final static int S_and = '&';
-	public final static int S_or  = '|';
-	public final static int S_eq  = '=';
-	public final static int S_lt  = '<';
-	public final static int S_gt  = '>';
-
-	public final static int S_neg = '~';
-	public final static int S_cpy = 'c';
-	public final static int S_del = 'd';
-	public final static int S_app = 'a';
-	public final static int S_qit = 'q';
-
-	/* don't fear the OOP zombies */
-	public int ival;
 	private StreamTokenizer st;
 
 	public TRScanner(String input) {
@@ -37,13 +42,13 @@ class TRScanner {
 		st.ordinaryChar('-');
 
 		/* don't try to interpret a 'word' */
-		st.ordinaryChar(S_cpy);
-		st.ordinaryChar(S_del);
-		st.ordinaryChar(S_app);
-		st.ordinaryChar(S_qit);
+		st.ordinaryChar(Token.S_cpy.getToken());
+		st.ordinaryChar(Token.S_del.getToken());
+		st.ordinaryChar(Token.S_app.getToken());
+		st.ordinaryChar(Token.S_qit.getToken());
 	}
 
-	public int scan() throws TRScannerException {
+	public Token scan() throws TRScannerException {
 		try {
 			switch (st.nextToken()) {
 				case StreamTokenizer.TT_WORD:
@@ -51,16 +56,22 @@ class TRScanner {
 				case StreamTokenizer.TT_EOL:
 					throw new TRScannerException("What have you done?");
 				case StreamTokenizer.TT_EOF:
-					return S_eof;
+					return Token.S_eof;
 				case StreamTokenizer.TT_NUMBER:
-					this.ival = (int) st.nval;
-					return S_num;
+					Token t = Token.S_num;
+					t.setIVal((int) st.nval);
+					return t;
 				default:
-					return (char) st.ttype;
+					for (Token i : Token.values()) {
+						if (i.getToken() == (char) st.ttype) {
+							return i;
+						}
+					}
+					return Token.S_eof; // TODO: better failure value?
 			}
 		} catch (IOException e) {
 			System.err.println("scanner: " + e.getMessage());
-			return S_eof;
+			return Token.S_eof;
 		}
 	}
 }
@@ -69,7 +80,7 @@ class TRParser {
 	private TRScanner scanner;
 	private TRArrayList inputlist;
 	private TRStack stack;
-	private char ch = 0;
+	private Token ch;
 	private int pos = 0;
 
 	public TRParser(TRScanner s, TRStack st, TRArrayList il) {
@@ -79,24 +90,24 @@ class TRParser {
 	}
 
 	private void next() throws TRScannerException {
-		this.ch = (char) scanner.scan();
+		this.ch = scanner.scan();
 	}
 
 	private void unit() throws TRScannerException, TRParserException {
 		StringBuilder unit = new StringBuilder("");
 		int i = 0;
 		next();
-		while (this.ch != TRScanner.S_rbr || i > 0) {
-			if (this.ch == TRScanner.S_eof)
+		while (this.ch != Token.S_rbr || i > 0) {
+			if (this.ch == Token.S_eof)
 				throw new TRParserException("missing ']'. probably malformed expression?");
-			else if (this.ch == TRScanner.S_lbr)
+			else if (this.ch == Token.S_lbr)
 				i++;
-			else if (this.ch == TRScanner.S_rbr)
+			else if (this.ch == Token.S_rbr)
 				i--;
-			if (this.ch == TRScanner.S_num) {
-				unit.append(scanner.ival).append(" ");
+			if (this.ch == Token.S_num) {
+				unit.append(this.ch.getIVal()).append(" ");
 			} else {
-				unit.append(this.ch).append(" ");
+				unit.append(this.ch.getToken()).append(" ");
 			}
 			next();
 		}
@@ -107,38 +118,38 @@ class TRParser {
 		do {
 			next();
 			switch(this.ch) {
-				case TRScanner.S_lbr: unit(); break;
-				case TRScanner.S_rbr: throw new TRParserException("Syntax Error: ]");
+				case S_lbr: unit(); break;
+				case S_rbr: throw new TRParserException("Syntax Error: ]");
 
-				case TRScanner.S_num:
-					inputlist.add(pos, new TRInteger(scanner.ival, this.stack)); break;
+				case S_num:
+					inputlist.add(pos, new TRInteger(this.ch.getIVal(), this.stack)); break;
 
-				case TRScanner.S_add: inputlist.add(pos, new TRAdd(this.stack, this.ch)); break;
-				case TRScanner.S_sub: inputlist.add(pos, new TRSub(this.stack, this.ch)); break;
-				case TRScanner.S_mul: inputlist.add(pos, new TRMul(this.stack, this.ch)); break;
-				case TRScanner.S_div: inputlist.add(pos, new TRDiv(this.stack, this.ch)); break;
-				case TRScanner.S_mod: inputlist.add(pos, new TRMod(this.stack, this.ch)); break;
+				case S_add: inputlist.add(pos, new TRAdd(this.stack, this.ch)); break;
+				case S_sub: inputlist.add(pos, new TRSub(this.stack, this.ch)); break;
+				case S_mul: inputlist.add(pos, new TRMul(this.stack, this.ch)); break;
+				case S_div: inputlist.add(pos, new TRDiv(this.stack, this.ch)); break;
+				case S_mod: inputlist.add(pos, new TRMod(this.stack, this.ch)); break;
 
-				case TRScanner.S_and: inputlist.add(pos, new TRAnd(this.stack, this.ch)); break;
-				case TRScanner.S_or : inputlist.add(pos, new TROr(this.stack, this.ch)); break;
-				case TRScanner.S_eq : inputlist.add(pos, new TREq(this.stack, this.ch)); break;
-				case TRScanner.S_lt : inputlist.add(pos, new TRLt(this.stack, this.ch)); break;
-				case TRScanner.S_gt : inputlist.add(pos, new TRGt(this.stack, this.ch)); break;
+				case S_and: inputlist.add(pos, new TRAnd(this.stack, this.ch)); break;
+				case S_or : inputlist.add(pos, new TROr(this.stack, this.ch)); break;
+				case S_eq : inputlist.add(pos, new TREq(this.stack, this.ch)); break;
+				case S_lt : inputlist.add(pos, new TRLt(this.stack, this.ch)); break;
+				case S_gt : inputlist.add(pos, new TRGt(this.stack, this.ch)); break;
 
-				case TRScanner.S_neg: inputlist.add(pos, new TRNeg(this.stack, this.ch)); break;
-				case TRScanner.S_cpy: inputlist.add(pos, new TRCpy(this.stack, this.ch)); break;
-				case TRScanner.S_del: inputlist.add(pos, new TRDel(this.stack, this.ch)); break;
-				case TRScanner.S_app:
+				case S_neg: inputlist.add(pos, new TRNeg(this.stack, this.ch)); break;
+				case S_cpy: inputlist.add(pos, new TRCpy(this.stack, this.ch)); break;
+				case S_del: inputlist.add(pos, new TRDel(this.stack, this.ch)); break;
+				case S_app:
 					inputlist.add(pos, new TRApp(this.stack, this.inputlist, this.ch)); break;
 
-				case TRScanner.S_eof: break;
-				case TRScanner.S_qit: return 0;
+				case S_eof: break;
+				case S_qit: return 0;
 				default: /* TODO: is this reachable atm? */
 					throw new TRParserException("unknown instruction: " +
-							this.ch + " (" + (int) this.ch + ")");
+							this.ch.getToken() + " (" + (int) this.ch.getToken() + ")");
 			}
 			pos++;
-		} while (this.ch != TRScanner.S_eof);
+		} while (this.ch != Token.S_eof);
 		return 1;
 	}
 }
@@ -279,10 +290,10 @@ interface TRTypes {
 }
 
 abstract class TROperation implements TRTypes {
-	protected char opc;
+	protected Token opc;
 	protected TRStack stack;
 
-	public TROperation(TRStack stack, char opc) {
+	public TROperation(TRStack stack, Token opc) {
 		this.stack = stack;
 		this.opc = opc;
 	}
@@ -293,7 +304,7 @@ abstract class TROperation implements TRTypes {
 	}
 
 	public String toString() {
-		return "" + this.opc;
+		return "" + this.opc.getToken();
 	}
 
 	public int getInt() throws TRExecuteException {
@@ -311,7 +322,7 @@ abstract class TROperation implements TRTypes {
 }
 
 class TRAdd extends TROperation {
-	public TRAdd(TRStack stack, char opc) {
+	public TRAdd(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -322,7 +333,7 @@ class TRAdd extends TROperation {
 }
 
 class TRSub extends TROperation {
-	public TRSub(TRStack stack, char opc) {
+	public TRSub(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -333,7 +344,7 @@ class TRSub extends TROperation {
 }
 
 class TRMul extends TROperation {
-	public TRMul(TRStack stack, char opc) {
+	public TRMul(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -344,7 +355,7 @@ class TRMul extends TROperation {
 }
 
 class TRDiv extends TROperation {
-	public TRDiv(TRStack stack, char opc) {
+	public TRDiv(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -355,7 +366,7 @@ class TRDiv extends TROperation {
 }
 
 class TRMod extends TROperation {
-	public TRMod(TRStack stack, char opc) {
+	public TRMod(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -366,7 +377,7 @@ class TRMod extends TROperation {
 }
 
 class TRAnd extends TROperation {
-	public TRAnd(TRStack stack, char opc) {
+	public TRAnd(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -380,7 +391,7 @@ class TRAnd extends TROperation {
 }
 
 class TROr extends TROperation {
-	public TROr(TRStack stack, char opc) {
+	public TROr(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -394,7 +405,7 @@ class TROr extends TROperation {
 }
 
 class TREq extends TROperation {
-	public TREq(TRStack stack, char opc) {
+	public TREq(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -407,7 +418,7 @@ class TREq extends TROperation {
 }
 
 class TRLt extends TROperation {
-	public TRLt(TRStack stack, char opc) {
+	public TRLt(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -420,7 +431,7 @@ class TRLt extends TROperation {
 }
 
 class TRGt extends TROperation {
-	public TRGt(TRStack stack, char opc) {
+	public TRGt(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -433,7 +444,7 @@ class TRGt extends TROperation {
 }
 
 class TRNeg extends TROperation {
-	public TRNeg(TRStack stack, char opc) {
+	public TRNeg(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -444,7 +455,7 @@ class TRNeg extends TROperation {
 }
 
 class TRCpy extends TROperation {
-	public TRCpy(TRStack stack, char opc) {
+	public TRCpy(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -458,7 +469,7 @@ class TRCpy extends TROperation {
 }
 
 class TRDel extends TROperation {
-	public TRDel(TRStack stack, char opc) {
+	public TRDel(TRStack stack, Token opc) {
 		super(stack, opc);
 	}
 	public void exec() throws TRExecuteException {
@@ -473,7 +484,7 @@ class TRDel extends TROperation {
 class TRApp extends TROperation {
 	private TRArrayList inputlist;
 
-	public TRApp(TRStack stack, TRArrayList il, char opc) {
+	public TRApp(TRStack stack, TRArrayList il, Token opc) {
 		super(stack, opc);
 		this.inputlist = il;
 	}
