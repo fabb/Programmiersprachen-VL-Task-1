@@ -83,7 +83,6 @@ class TRParser {
 	private TRScanner scanner;
 	private TRArrayList inputlist;
 	private TRStack stack;
-	private Token ch;
 	private int pos = 0;
 
 	public TRParser(TRScanner s, TRStack st, TRArrayList il) {
@@ -92,67 +91,68 @@ class TRParser {
 		this.inputlist = il;
 	}
 
-	private void next() throws TRScannerException {
-		this.ch = scanner.scan();
+	private Token next() throws TRScannerException {
+		return scanner.scan();
 	}
 
 	private void unit() throws TRScannerException, TRParserException {
 		StringBuilder unit = new StringBuilder("");
+		Token ch = this.next();
 		int i = 0;
-		next();
-		while (this.ch != Token.S_rbr || i > 0) {
-			if (this.ch == Token.S_eof)
+		while (ch != Token.S_rbr || i > 0) {
+			if (ch == Token.S_eof)
 				throw new TRParserException("missing ']'. probably malformed expression?");
-			else if (this.ch == Token.S_lbr)
+			else if (ch == Token.S_lbr)
 				i++;
-			else if (this.ch == Token.S_rbr)
+			else if (ch == Token.S_rbr)
 				i--;
-			if (this.ch == Token.S_num) {
-				unit.append(this.ch.getIVal()).append(" ");
+			if (ch == Token.S_num) {
+				unit.append(ch.getIVal()).append(" ");
 			} else {
-				unit.append(this.ch.getToken()).append(" ");
+				unit.append(ch.getToken()).append(" ");
 			}
-			next();
+			ch = this.next();
 		}
 		inputlist.add(pos, new TRUnit(unit + "", this.stack));
 	}
 
 	public int parse() throws TRScannerException, TRParserException {
+		Token ch;
 		do {
-			next();
-			switch(this.ch) {
+			ch = this.next();
+			switch(ch) {
 				case S_lbr: unit(); break;
 				case S_rbr: throw new TRParserException("Syntax Error: ]");
 
 				case S_num:
-					inputlist.add(pos, new TRInteger(this.ch.getIVal(), this.stack)); break;
+					inputlist.add(pos, new TRInteger(ch.getIVal(), this.stack)); break;
 
-				case S_add: inputlist.add(pos, new TRAdd(this.stack, this.ch)); break;
-				case S_sub: inputlist.add(pos, new TRSub(this.stack, this.ch)); break;
-				case S_mul: inputlist.add(pos, new TRMul(this.stack, this.ch)); break;
-				case S_div: inputlist.add(pos, new TRDiv(this.stack, this.ch)); break;
-				case S_mod: inputlist.add(pos, new TRMod(this.stack, this.ch)); break;
+				case S_add: inputlist.add(pos, new TRAdd(this.stack, ch)); break;
+				case S_sub: inputlist.add(pos, new TRSub(this.stack, ch)); break;
+				case S_mul: inputlist.add(pos, new TRMul(this.stack, ch)); break;
+				case S_div: inputlist.add(pos, new TRDiv(this.stack, ch)); break;
+				case S_mod: inputlist.add(pos, new TRMod(this.stack, ch)); break;
 
-				case S_and: inputlist.add(pos, new TRAnd(this.stack, this.ch)); break;
-				case S_or : inputlist.add(pos, new TROr(this.stack, this.ch)); break;
-				case S_eq : inputlist.add(pos, new TREq(this.stack, this.ch)); break;
-				case S_lt : inputlist.add(pos, new TRLt(this.stack, this.ch)); break;
-				case S_gt : inputlist.add(pos, new TRGt(this.stack, this.ch)); break;
+				case S_and: inputlist.add(pos, new TRAnd(this.stack, ch)); break;
+				case S_or : inputlist.add(pos, new TROr(this.stack, ch)); break;
+				case S_eq : inputlist.add(pos, new TREq(this.stack, ch)); break;
+				case S_lt : inputlist.add(pos, new TRLt(this.stack, ch)); break;
+				case S_gt : inputlist.add(pos, new TRGt(this.stack, ch)); break;
 
-				case S_neg: inputlist.add(pos, new TRNeg(this.stack, this.ch)); break;
-				case S_cpy: inputlist.add(pos, new TRCpy(this.stack, this.ch)); break;
-				case S_del: inputlist.add(pos, new TRDel(this.stack, this.ch)); break;
+				case S_neg: inputlist.add(pos, new TRNeg(this.stack, ch)); break;
+				case S_cpy: inputlist.add(pos, new TRCpy(this.stack, ch)); break;
+				case S_del: inputlist.add(pos, new TRDel(this.stack, ch)); break;
 				case S_app:
-					inputlist.add(pos, new TRApp(this.stack, this.inputlist, this.ch)); break;
+					inputlist.add(pos, new TRApp(this.stack, this.inputlist, ch)); break;
 
 				case S_eof: break;
 				case S_qit: return 0;
 				default: /* TODO: is this reachable atm? */
 					throw new TRParserException("unknown instruction: " +
-							this.ch.getToken() + " (" + (int) this.ch.getToken() + ")");
+							ch.getToken() + " (" + (int) ch.getToken() + ")");
 			}
 			pos++;
-		} while (this.ch != Token.S_eof);
+		} while (ch != Token.S_eof);
 		return 1;
 	}
 }
