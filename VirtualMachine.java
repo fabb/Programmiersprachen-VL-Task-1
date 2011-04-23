@@ -56,15 +56,15 @@ class Scanner {
 		try {
 			switch (st.nextToken()) {
 				case StreamTokenizer.TT_WORD:
-					throw new ScannerException("Invalid Instruction/Token: \"" + st.sval + "\"");
+					throw new ScannerException("invalid Instruction/Token: \"" + st.sval + "\"");
 				case StreamTokenizer.TT_EOL:
-					throw new ScannerException("What have you done?");
+					throw new ScannerException("what have you done?");
 				case StreamTokenizer.TT_EOF:
 					return Token.S_eof;
 				case StreamTokenizer.TT_NUMBER:
 					Token t = Token.S_num;
 					if (st.nval > Integer.MAX_VALUE || st.nval < Integer.MIN_VALUE) {
-						throw new ScannerException("Value too small/big: \"" + st.sval + "\"");
+						throw new ScannerException("value too small/big: \"" + st.sval + "\"");
 					}
 					t.setIVal((int) st.nval);
 					return t;
@@ -77,8 +77,7 @@ class Scanner {
 					return Token.S_eof; // TODO: better failure value?
 			}
 		} catch (IOException e) {
-			System.err.println("scanner: " + e.getMessage());
-			return Token.S_eof;
+			throw new ScannerException("<io-failure>: " + e.getMessage());
 		}
 	}
 }
@@ -325,7 +324,7 @@ abstract class Operation implements Type {
 
 	protected static void checkBool(int i) throws ExecuteException {
 		if (i != 0 && i != 1)
-			throw new ExecuteException("Not a valid Boolean: \"" + i + "\"");
+			throw new ExecuteException("not a valid Boolean: \"" + i + "\"");
 	}
 
 	public String toString() {
@@ -333,16 +332,16 @@ abstract class Operation implements Type {
 	}
 
 	public int getInt() throws ExecuteException {
-		throw new ExecuteException("Not an Integer or Boolean: \"" + this + "\"");
+		throw new ExecuteException("not an Integer or Boolean: \"" + this + "\"");
 	}
 
 	public String getUnit() throws ExecuteException {
-		throw new ExecuteException("Not an Unit: \"" + this + "\"");
+		throw new ExecuteException("not an Unit: \"" + this + "\"");
 	}
 
 	/* Comparing operations doesn't make sense in this context */
 	public boolean eq(Type o) throws ExecuteException {
-		throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+		throw new ExecuteException("can't compare Types: \"" + this + "\" and \"" + o + "\"");
 	}
 }
 
@@ -525,11 +524,10 @@ class Application extends Operation {
 		try {
 			new Parser(new Scanner(arg1), this.stack, this.inputlist).parse();
 		} catch (ScannerException trse) {
-			System.err.println("<scanner> " + trse.getMessage());
+			throw new ExecuteException("<app-scanner> " + trse.getMessage());
 		} catch (ParserException trpe) {
-			System.err.println("<parser> " + trpe.getMessage());
+			throw new ExecuteException("<app-parser> " + trpe.getMessage());
 		}
-		/* TODO: when those exceptions happens here? */
 	}
 }
 
@@ -558,7 +556,7 @@ class Unit implements Type {
 		try {
 			return this.unit.equals(o.getUnit());
 		} catch (ExecuteException e) {
-			throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+			throw new ExecuteException("can't compare Types: \"" + this + "\" and \"" + o + "\"");
 		}
 	}
 
@@ -593,7 +591,7 @@ class Int implements Type {
 		try {
 			return this.i == o.getInt();
 		} catch (ExecuteException e) {
-			throw new ExecuteException("Can't compare Types: \"" + this + "\" and \"" + o + "\"");
+			throw new ExecuteException("can't compare Types: \"" + this + "\" and \"" + o + "\"");
 		}
 	}
 
