@@ -52,13 +52,16 @@ class TRScanner {
 		try {
 			switch (st.nextToken()) {
 				case StreamTokenizer.TT_WORD:
-					throw new TRScannerException("Invalid Instruction/Token: " + st.sval);
+					throw new TRScannerException("Invalid Instruction/Token: \"" + st.sval + "\"");
 				case StreamTokenizer.TT_EOL:
 					throw new TRScannerException("What have you done?");
 				case StreamTokenizer.TT_EOF:
 					return Token.S_eof;
 				case StreamTokenizer.TT_NUMBER:
 					Token t = Token.S_num;
+					if (st.nval > Integer.MAX_VALUE || st.nval < Integer.MIN_VALUE) {
+						throw new TRScannerException("Value too small/big: \"" + st.sval + "\"");
+					}
 					t.setIVal((int) st.nval);
 					return t;
 				default:
