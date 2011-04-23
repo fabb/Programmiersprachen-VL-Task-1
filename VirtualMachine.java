@@ -163,6 +163,22 @@ class Parser {
 	}
 }
 
+enum ConsoleColor {
+	Red(31), Green(32),
+	Cyan(36), Reset(0);
+
+	private String consolecode;
+	private ConsoleColor(int code) {
+		this.consolecode = ((char) 27) + "[" + code + "m";
+	}
+	public String toString() {
+		return this.consolecode;
+	}
+	public String color(String str) {
+		return this.consolecode + str + ConsoleColor.Reset;
+	}
+}
+
 public class VirtualMachine {
 	private Stack stack;
 	private InputList inputlist;
@@ -177,28 +193,23 @@ public class VirtualMachine {
 	public void start() throws ExecuteException {
 		boolean first = true;
 
-		String redc = ((char) 27) + "[31m"; //red color
-		String greenc = ((char) 27) + "[32m"; //green color
-		String resetc = ((char) 27) + "[0m"; //reset color
 		while (!inputlist.isEmpty()) {
 			if (first || debug) {
-				if (first)
-					first = false;
-				System.out.println(greenc + ">" + resetc + " " + this.stack +
-						redc + "#" + resetc + " " + this.inputlist);
+				first = false;
+				System.out.println(ConsoleColor.Green.color(">") + " "
+						+ this.stack + ConsoleColor.Red.color("#") + " "
+						+ this.inputlist);
 			}
 			Type i = inputlist.get(0);
 			inputlist.remove(0);
 			i.exec();
 		}
-		System.out.println(greenc + ">" + resetc + " " + this.stack +
-				redc + "#" + resetc + " " + this.inputlist);
+		System.out.println(ConsoleColor.Green.color(">") + " "
+				+ this.stack + ConsoleColor.Red.color("#") + " "
+				+ this.inputlist);
 	}
 
 	public static void main(String args[]) {
-		String redc = ((char) 27) + "[31m"; //red color
-		String cyanc = ((char) 27) + "[36m"; //cyan color
-		String resetc = ((char) 27) + "[0m"; //reset color
 		ConsoleReader reader = null;
 		BufferedReader filein = null;
 		int ret = 1;
@@ -209,7 +220,7 @@ public class VirtualMachine {
 				try {
 					filein = new BufferedReader(new FileReader(args[++i]));
 				} catch (IOException e) {
-					System.err.println(redc + "<main> " + e.getMessage() + resetc);
+					System.err.println(ConsoleColor.Red.color("<main> " + e.getMessage()));
 					System.exit(1);
 				}
 			} else if ("-d".equals(args[i])) {
@@ -221,7 +232,7 @@ public class VirtualMachine {
 						"\t-h|--help\tprint this text");
 				System.exit(0);
 			} else {
-				System.err.println(redc + "<main> Invalid Option: " + args[i] + resetc);
+				System.err.println(ConsoleColor.Red.color("<main> Invalid Option: " + args[i]));
 				System.exit(1);
 			}
 		}
@@ -231,7 +242,7 @@ public class VirtualMachine {
 			try {
 				reader = new ConsoleReader();
 			} catch (IOException ioe) {
-				System.err.println(redc + "<main> " + ioe.getMessage() + resetc);
+				System.err.println(ConsoleColor.Red.color("<main> " + ioe.getMessage()));
 				System.exit(3);
 			}
 		}
@@ -241,7 +252,7 @@ public class VirtualMachine {
 				InputList inputlist = new InputList(200);
 
 				if (filein == null) {
-					input = reader.readLine(cyanc + "$" + resetc + " ");
+					input = reader.readLine(ConsoleColor.Cyan.color("$") + " ");
 				} else {
 					input = filein.readLine();
 				}
@@ -252,13 +263,13 @@ public class VirtualMachine {
 					ret = 0;
 				}
 			} catch (IOException e) {
-				System.err.println(redc + "<main> " + e.getMessage() + resetc);
+				System.err.println(ConsoleColor.Red.color("<main> " + e.getMessage()));
 			} catch (ScannerException trse) {
-				System.err.println(redc + "<scanner> " + trse.getMessage() + resetc);
+				System.err.println(ConsoleColor.Red.color("<scanner> " + trse.getMessage()));
 			} catch (ParserException trpe) {
-				System.err.println(redc + "<parser> " + trpe.getMessage() + resetc);
+				System.err.println(ConsoleColor.Red.color("<parser> " + trpe.getMessage()));
 			} catch (ExecuteException tree) {
-				System.err.println(redc + "<vm> " + tree.getMessage() + resetc);
+				System.err.println(ConsoleColor.Red.color("<vm> " + tree.getMessage()));
 			}
 		} while((ret > 0) && (filein == null));
 		System.exit(0);
