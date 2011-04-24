@@ -52,6 +52,7 @@ class Unit implements Type {
 		this.stack = s;
 	}
 
+	@Override
 	public String getUnit() {
 		return this.unit;
 	}
@@ -61,14 +62,17 @@ class Unit implements Type {
 	 *
 	 * @see taschenrechner.Type#exec()
 	 */
+	@Override
 	public void exec() {
 		this.stack.push(this);
 	}
 
+	@Override
 	public int getInt() throws ExecuteException {
 		throw new ExecuteException("not a Integer or Bool: \"" + this + "\"");
 	}
 
+	@Override
 	public boolean eq(Type o) throws ExecuteException {
 		try {
 			return this.unit.equals(o.getUnit());
@@ -77,6 +81,7 @@ class Unit implements Type {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return '[' + this.unit + ']';
 	}
@@ -95,6 +100,7 @@ class Int implements Type {
 		this.stack = s;
 	}
 
+	@Override
 	public int getInt() {
 		return this.i;
 	}
@@ -104,14 +110,17 @@ class Int implements Type {
 	 *
 	 * @see taschenrechner.Type#exec()
 	 */
+	@Override
 	public void exec() {
 		this.stack.push(this);
 	}
 
+	@Override
 	public String getUnit() throws ExecuteException {
 		throw new ExecuteException("not a Unit: \"" + this + "\"");
 	}
 
+	@Override
 	public boolean eq(Type o) throws ExecuteException {
 		try {
 			return this.i == o.getInt();
@@ -120,6 +129,7 @@ class Int implements Type {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return this.i + "";
 	}

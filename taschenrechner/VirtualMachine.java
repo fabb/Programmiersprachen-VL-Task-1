@@ -25,6 +25,7 @@ enum ConsoleColor {
 		this.consolecode = ((char) 27) + "[" + code + "m";
 	}
 
+	@Override
 	public String toString() {
 		return this.consolecode;
 	}
@@ -203,6 +204,7 @@ class InputList extends ArrayList<Type> {
 		super(s);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder t = new StringBuilder("");
 		for (Type i : this) {

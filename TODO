@@ -5,7 +5,6 @@ General
 -------
 
 * Write Preconditions, Postconditions and Invariants as Function Comments
-* use Java Annotations (e.g. @Override)
 
 Features
 --------

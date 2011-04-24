@@ -32,6 +32,7 @@ abstract class Operation implements Type {
 			throw new ExecuteException("not a valid Boolean: \"" + i + "\"");
 	}
 
+	@Override
 	public String toString() {
 		return "" + this.opc.getToken();
 	}
@@ -63,6 +64,7 @@ abstract class Operation implements Type {
 	 *
 	 * @see taschenrechner.Type#eq(Type)
 	 */
+	@Override
 	public boolean eq(Type o) throws ExecuteException {
 		throw new ExecuteException("can't compare Types: \"" + this + "\" and \"" + o + "\"");
 	}
@@ -81,6 +83,7 @@ class Addition extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -101,6 +104,7 @@ class Subtraction extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -121,6 +125,7 @@ class Multiplication extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -141,6 +146,7 @@ class Division extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -165,6 +171,7 @@ class Modulus extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -189,6 +196,7 @@ class And extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -212,6 +220,7 @@ class Or extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -236,6 +245,7 @@ class Equal extends Operation {
 	 * @throws ExecuteException	 if there aren't enough elements on the stack or the type of
 	 * the elements aren't correct.
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		Type arg2 = this.stack.safepop();
 		Type arg1 = this.stack.safepop();
@@ -258,6 +268,7 @@ class LessThan extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -280,6 +291,7 @@ class GreaterThan extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
@@ -302,6 +314,7 @@ class Negation extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack or the type of
 	 * the element isn't correct
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg1 = this.stack.safepop().getInt();
 
@@ -321,6 +334,7 @@ class Copy extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack, the type of
 	 * the element isn't correct or when it's a invalid index
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		/* note that the assignment starts counting at "1" */
 		int arg1 = this.stack.safepop().getInt();
@@ -346,6 +360,7 @@ class Deletion extends Operation {
 	 * @throws ExecuteException if there aren't enough elements on the stack, the type of
 	 * the element isn't correct or when it's a invalid index
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		int arg1 = this.stack.safepop().getInt();
 
@@ -373,6 +388,7 @@ class Application extends Operation {
 	 * @throws ExecuteException if the top of stack isn't a unit, the content
 	 * of the unit can't be scanned correctly or there's a parsing error
 	 */
+	@Override
 	public void exec() throws ExecuteException {
 		String arg1 = this.stack.safepop().getUnit();
 
