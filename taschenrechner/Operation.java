@@ -37,8 +37,8 @@ class Addition extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		new Int(arg1 + arg2, this.stack).exec();
 	}
 }
@@ -48,8 +48,8 @@ class Subtraction extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		new Int(arg1 - arg2, this.stack).exec();
 	}
 }
@@ -59,8 +59,8 @@ class Multiplication extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		new Int(arg1 * arg2, this.stack).exec();;
 	}
 }
@@ -70,8 +70,8 @@ class Division extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		new Int(arg1 / arg2, this.stack).exec();;
 	}
 }
@@ -81,8 +81,8 @@ class Modulus extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		new Int(arg1 % arg2, this.stack).exec();
 	}
 }
@@ -92,8 +92,8 @@ class And extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) && (arg2 == 0) ? 0 : 1;
 
@@ -106,8 +106,8 @@ class Or extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		checkBool(arg2); checkBool(arg1);
 		int erg = (arg1 == 0) || (arg2 == 0) ? 0 : 1;
 
@@ -120,8 +120,8 @@ class Equal extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		Type arg2 = this.stack.pop();
-		Type arg1 = this.stack.pop();
+		Type arg2 = this.stack.safepop();
+		Type arg1 = this.stack.safepop();
 		int erg = arg1.eq(arg2) ? 0 : 1;
 
 		new Int(erg, this.stack).exec();
@@ -133,8 +133,8 @@ class LessThan extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		int erg = arg1 < arg2 ? 0 : 1;
 
 		new Int(erg, this.stack).exec();
@@ -146,8 +146,8 @@ class GreaterThan extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg2 = this.stack.pop().getInt();
-		int arg1 = this.stack.pop().getInt();
+		int arg2 = this.stack.safepop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		int erg = arg1 > arg2 ? 0 : 1;
 
 		new Int(erg, this.stack).exec();
@@ -159,7 +159,7 @@ class Negation extends Operation {
 		super(stack, opc);
 	}
 	public void exec() throws ExecuteException {
-		int arg1 = this.stack.pop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 
 		new Int(-1 * arg1, this.stack).exec();
 	}
@@ -171,7 +171,7 @@ class Copy extends Operation {
 	}
 	public void exec() throws ExecuteException {
 		/* note that the assignment starts counting at "1" */
-		int arg1 = this.stack.pop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 		int pos = this.stack.size() - arg1 + 1;
 
 		try {
@@ -188,7 +188,7 @@ class Deletion extends Operation {
 	}
 	public void exec() throws ExecuteException {
 		//TODO: assert == 1?
-		int arg1 = this.stack.pop().getInt();
+		int arg1 = this.stack.safepop().getInt();
 
 		try {
 			this.stack.remove(this.stack.size() - arg1 + 1);
@@ -206,7 +206,7 @@ class Application extends Operation {
 		this.inputlist = il;
 	}
 	public void exec() throws ExecuteException {
-		String arg1 = this.stack.pop().getUnit();
+		String arg1 = this.stack.safepop().getUnit();
 
 		try {
 			ParserCode ret = new Parser(new Scanner(arg1), this.stack, this.inputlist).parse();

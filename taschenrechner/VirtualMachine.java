@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import static java.lang.Math.max;
 
 import jline.*;
@@ -133,6 +134,14 @@ class Stack extends java.util.Stack<Type> {
 			return ConsoleColor.Cyan.color("{" + (size - 4) + "}") + " " + t;
 		} else {
 			return t + "";
+		}
+	}
+
+	public Type safepop() throws ExecuteException {
+		try {
+			return super.pop();
+		} catch (EmptyStackException e) {
+			throw new ExecuteException("not enough elements on the stack");
 		}
 	}
 }
