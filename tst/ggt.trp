@@ -1,0 +1,26 @@
+#include "common.h"
+
+/* iterativ: input a and b
+	int r;
+	do {
+		r = a mod b;
+		a = b;
+		b = r;
+	} (r != 0);
+	return a; //ggt
+*/
+
+#define INPUTA 1337
+#define INPUTB 7
+
+/* pre: A B */
+#define BODY DUP \ /* s: A B B */
+ 	4c 5d \ /* s: B B A */
+	SWP \ /* s: B A B */
+	% \ /* s: B R */
+	DUP 0 = [2d 3d] \ /* if: clear B and [BODY] */
+	[4c a] IFTE /* else: do [BODY] again */
+/* post: B */
+
+[BODY] INPUTA INPUTB BODY \
+	7 /* excepted result */

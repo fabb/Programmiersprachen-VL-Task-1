@@ -9,6 +9,8 @@ General
 * use Java Annotations (e.g. @Override)
 * JavaDoc
 * more (realistic) Testcases
+* add exception on parsing 'q' @ Application
+* add SWP and DUP as macro
 
 Features
 --------

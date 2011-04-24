@@ -35,9 +35,9 @@ Nachteile:
 			0= \ 	// Vergleich, ob die Modulo-Operation 0 geliefert hat (keine Primzahl => linker Zweig), oder nicht (weiter rekursieren => rechter Zweig)
 			[[1]] \	// keine Primzahl, 1 wird zurückgegeben
 			[3c]  \	// BODY holen um weiter Rekursion auszuführen
-			IFTE a a \ // je nach Ergebnis von (INPUT%i==0) wird der linke oder rechte Teil ausgeführt - das zweite a ist notwendig, da in [3c] dann [BODY] stehen wird und BODY wieder eckig geklammert ist
+			IFTE a \ // je nach Ergebnis von (INPUT%i==0) wird der linke oder rechte Teil ausgeführt - das zweite a ist notwendig, da in [3c] dann [BODY] stehen wird und BODY wieder eckig geklammert ist
 		] \
-		IFTE a \ // führt entweder den True- oder den False-Zweig von (i<2) aus
+		IFTE \ // führt entweder den True- oder den False-Zweig von (i<2) aus
 	]
 
 /* Programm */
@@ -47,4 +47,5 @@ INPUT \        // Primzahl
 	2/ 1+ \ // Es reicht von p/2 auf Teilbarkeit zu überprüfen; Inkrementieren ist notwendig, da im rekursiven Programm am Anfang dekrementiert wird
 	3c \ 	// Kopie von BODY mit welcher gearbeitet wird
 	a \ 		// erster Aufruf von BODY
-	3d 3d 3d 	// nachdem BODY terminiert ist und entweder 0 oder 1 zurückgegeben hat, werden das ursprüngliche INPUT BODY und der aktuelle Iterator i gelöscht und es bleibt nur das Ergebnis übrig
+	3d 3d 3d \ 	// nachdem BODY terminiert ist und entweder 0 oder 1 zurückgegeben hat, werden das ursprüngliche INPUT BODY und der aktuelle Iterator i gelöscht und es bleibt nur das Ergebnis übrig
+	0 /* excepted result */

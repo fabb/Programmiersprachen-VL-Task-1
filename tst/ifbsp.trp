@@ -1,4 +1,5 @@
 /* if-then-else example from the assignment */
 #include "common.h"
 
-0 [9] [9~] IFTE a
+0 [9] [9~] IFTE \
+	9 /* excepted result */
