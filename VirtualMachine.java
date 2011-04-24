@@ -528,7 +528,10 @@ class Application extends Operation {
 		String arg1 = this.stack.pop().getUnit();
 
 		try {
-			new Parser(new Scanner(arg1), this.stack, this.inputlist).parse();
+			ParserCode ret = new Parser(new Scanner(arg1), this.stack, this.inputlist).parse();
+			if (ret == ParserCode.QUIT) {
+				throw new ExecuteException("`q' in Unit not allowed");
+			}
 		} catch (ScannerException trse) {
 			throw new ExecuteException("<app-scanner> " + trse.getMessage());
 		} catch (ParserException trpe) {

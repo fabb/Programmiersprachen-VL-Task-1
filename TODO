@@ -8,9 +8,7 @@ General
 * Refactoring: seperate Classes in different Files
 * use Java Annotations (e.g. @Override)
 * JavaDoc
-* more (realistic) Testcases
-* add exception on parsing 'q' @ Application
-* add SWP and DUP as macro
+* more (realistic) Testcases: fib
 
 Features
 --------
