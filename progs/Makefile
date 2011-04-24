@@ -20,5 +20,5 @@ clean:
 buildtools:
 	make -C ../ all
 
-tst:
-	make -C ../ tst
+progs:
+	make -C ../ progs
