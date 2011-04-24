@@ -1,26 +1,37 @@
 SHELL := bash
 
-TARGET := VirtualMachine.class
-PKG := taschenrechner
-CLASSES := Type.class Operation.class Scanner.class Parser.class $(TARGET)
-SRC := $(addprefix $(PKG)/,$(addsuffix .java,$(basename $(CLASSES))))
 DIST := dist
 DOCS := docs
 LIB := lib/*
+PKG := taschenrechner
+
+TARGET := VirtualMachine.class
 RTARGET := $(DIST)/$(PKG)/$(TARGET)
-CLASSTARGET := $(PKG)/$(basename $(TARGET))
+CLASSTARGET := $(PKG).$(basename $(TARGET))
+CLASSES := Type.class Operation.class Scanner.class Parser.class $(TARGET)
+SRC := $(addprefix $(PKG)/,$(addsuffix .java,$(basename $(CLASSES))))
+
+TESTTARGET := AllTests.class
+TESTRTARGET := $(DIST)/$(PKG)/$(TESTTARGET)
+TESTCLASSTARGET := $(PKG).$(basename $(TESTTARGET))
+TESTCLASSES := AdditionTest.class $(TESTTARGET)
+TESTSRC := $(addprefix test/$(PKG)/,$(addsuffix .java,$(basename $(TESTCLASSES))))
 
 all: $(RTARGET) $(DOCS)
 
-$(RTARGET): $(DIST) $(SRC)
+$(RTARGET): $(DIST) $(SRC) $(TESTSRC)
 	@echo "COMPILE  $(basename $(notdir $(SRC)))"
-	@javac -cp $(LIB) -d $(DIST)/ $(SRC)
+	@echo "COMPILE  $(basename $(notdir $(TESTSRC)))"
+	@javac -cp '$(LIB)' -d $(DIST)/ $(SRC) $(TESTSRC)
 
 $(DIST):
 	@mkdir -p $@/
 
 exec: $(RTARGET)
 	java -cp $(LIB):$(DIST) $(CLASSTARGET) -d
+
+test: $(RTARGET)
+	java -cp $(LIB):$(DIST) junit.textui.TestRunner $(TESTCLASSTARGET)
 
 $(DOCS): $(SRC)
 	@echo "GEN      JAVADOC"
@@ -33,7 +44,7 @@ progs: all
 	for i in `ls $@/*.tr`; do echo $$i:; java -cp $(LIB):$(DIST) \
 		$(CLASSTARGET) -f $$i; done
 
-.PHONY: clean progs exec
+.PHONY: clean progs exec test
 clean:
 	rm -Rf dist/ docs/
 	make -C progs/ clean
