@@ -1,18 +1,22 @@
 TARGET := VirtualMachine.class
-CLASSTARGET := $(basename $(TARGET))
+CLASSES := Type.class Operation.class Scanner.class Parser.class $(TARGET)
+SRC := $(addprefix taschenrechner/,$(addsuffix .java,$(basename $(CLASSES))))
+CLASSTARGET := taschenrechner/$(basename $(TARGET))
 DIST := dist
 LIB := lib/*
 
-all: $(DIST)/$(TARGET)
+all: $(DIST) $(DIST)/taschenrechner/$(TARGET)
 
-$(DIST)/%.class: %.java $(DIST)
-	@echo "COMPILE  $<"
-	javac -cp $(LIB) -d $(DIST)/ $<
+$(SRC): $(DIST)
+
+$(DIST)/taschenrechner/$(TARGET): $(SRC)
+	@echo "COMPILE  $^"
+	javac -cp $(LIB) -d $(DIST)/ $^
 
 $(DIST):
 	@mkdir -p $(DIST)/
 
-exec: $(DIST)/$(TARGET)
+exec: $(DIST)/taschenrechner/$(TARGET)
 	java -cp $(LIB):$(DIST) $(CLASSTARGET) -d
 
 tst: all
