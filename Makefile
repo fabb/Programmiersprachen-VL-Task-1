@@ -3,7 +3,7 @@ CLASSES := Type.class Operation.class Scanner.class Parser.class $(TARGET)
 SRC := $(addprefix taschenrechner/,$(addsuffix .java,$(basename $(CLASSES))))
 CLASSTARGET := taschenrechner/$(basename $(TARGET))
 DIST := dist
-DOCS := docs/
+DOCS := docs
 LIB := lib/*
 
 all: $(DIST) $(DIST)/taschenrechner/$(TARGET) $(DOCS)

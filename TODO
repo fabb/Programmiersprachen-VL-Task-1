@@ -5,9 +5,7 @@ General
 -------
 
 * Write Preconditions, Postconditions and Invariants as Function Comments
-* Refactoring: seperate Classes in different Files
 * use Java Annotations (e.g. @Override)
-* JavaDoc
 
 Features
 --------

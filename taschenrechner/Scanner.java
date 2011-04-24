@@ -1,3 +1,7 @@
+/**
+ * @author Bernhard Urban, Fabian Ehrentraud
+ */
+
 package taschenrechner;
 
 import java.io.BufferedReader;
@@ -5,6 +9,9 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 
+/**
+ * Define relevant tokens and provide methods in order to operate on them.
+ */
 enum Token {
 	S_num, S_eof,
 	S_lbr('['), S_rbr(']'),
@@ -16,15 +23,27 @@ enum Token {
 	private char token;
 	private int ival;
 
+	/**
+	 * @return the ASCII representation of the token
+	 */
 	public char getToken() {
 		return this.token;
 	}
+
+	/**
+	 * @param ival set the numeric representation of the token. only for numbers necessary
+	 */
 	public void setIVal(int ival) {
 		this.ival = ival;
 	}
+
+	/**
+	 * @return the numeric representation of the token. only for numbers necessary
+	 */
 	public int getIVal() {
 		return this.ival;
 	}
+
 	private Token() {
 		this.token = '_'; // dummy
 	}
@@ -33,15 +52,24 @@ enum Token {
 	}
 }
 
+/**
+ * At first we need to scan the userinput, and generate tokens for the parser.
+ * For this purpose StreamTokenizer is used.
+ */
 public class Scanner {
 	private StreamTokenizer st;
 
+	/**
+	 * @param input try to scan this String
+	 */
 	public Scanner(String input) {
 		BufferedReader br = new BufferedReader(new StringReader(input));
 		st = new StreamTokenizer(br);
-		st.ordinaryChar('/');
-		st.ordinaryChar('*');
-		st.ordinaryChar('-');
+
+		/* for some characters, we've to disable the standard behavior of StreamTokenizer */
+		st.ordinaryChar(Token.S_div.getToken());
+		st.ordinaryChar(Token.S_mul.getToken());
+		st.ordinaryChar(Token.S_sub.getToken());
 
 		/* don't try to interpret a 'word' */
 		st.ordinaryChar(Token.S_cpy.getToken());
@@ -50,6 +78,11 @@ public class Scanner {
 		st.ordinaryChar(Token.S_qit.getToken());
 	}
 
+	/**
+	 * This method tries to scan the given String.
+	 * @return the scanned token
+	 * @throws ScannerException e.g. a invalid instruction or I/O failure
+	 */
 	public Token scan() throws ScannerException {
 		try {
 			switch (st.nextToken()) {

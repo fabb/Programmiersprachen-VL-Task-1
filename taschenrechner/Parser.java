@@ -1,9 +1,20 @@
+/**
+ * @author Bernhard Urban, Fabian Ehrentraud
+ */
+
 package taschenrechner;
 
+/**
+ * Returncodes for the parser
+ */
 enum ParserCode {
 	QUIT, RUN;
 }
 
+/**
+ * The parser gets tokens from the scanner and adds the corresponding operations
+ * to the inputlist of the calculator
+ */
 public class Parser {
 	private Scanner scanner;
 	private InputList inputlist;
@@ -15,31 +26,19 @@ public class Parser {
 		this.inputlist = il;
 	}
 
+	/**
+	 * @return next scanned token
+	 */
 	private Token next() throws ScannerException {
 		return scanner.scan();
 	}
 
-	private void unit(InputList localil) throws ScannerException, ParserException {
-		StringBuilder unit = new StringBuilder("");
-		Token ch = this.next();
-		int i = 0;
-		while (ch != Token.S_rbr || i > 0) {
-			if (ch == Token.S_eof)
-				throw new ParserException("missing ']'. probably malformed expression?");
-			else if (ch == Token.S_lbr)
-				i++;
-			else if (ch == Token.S_rbr)
-				i--;
-			if (ch == Token.S_num) {
-				unit.append(ch.getIVal()).append(" ");
-			} else {
-				unit.append(ch.getToken()).append(" ");
-			}
-			ch = this.next();
-		}
-		localil.add(new Unit(unit + "", this.stack));
-	}
-
+	/**
+	 * This method tries to parse the given input (provided by the scanner) and
+	 * adds the elements to the inputlist
+	 *
+	 * @return QUIT on `q' or RUN on everything else
+	 */
 	public ParserCode parse() throws ScannerException, ParserException {
 		InputList localil = new InputList(10);
 		Token ch;
@@ -81,5 +80,36 @@ public class Parser {
 
 		this.inputlist.addAll(0, localil);
 		return ret;
+	}
+
+	/**
+	 * This method handles unit's separately, since they could be nested.<br/>
+	 * <b>Note</b>: An unit is already scanned here, so we could (theoretically)
+	 * skip the scan-pass in the application operator and store the tokenlist
+	 * somewhere at this point. However, for simplification reasons, we just do
+	 * the scan-pass twice (once here, and once in the application operator).
+	 *
+	 * @param localil temporary inputlist, which'll be added in parse() to the
+	 * actual inputlist
+	 */
+	private void unit(InputList localil) throws ScannerException, ParserException {
+		StringBuilder unit = new StringBuilder("");
+		Token ch = this.next();
+		int i = 0;
+		while (ch != Token.S_rbr || i > 0) {
+			if (ch == Token.S_eof)
+				throw new ParserException("missing ']'. probably malformed expression?");
+			else if (ch == Token.S_lbr)
+				i++;
+			else if (ch == Token.S_rbr)
+				i--;
+			if (ch == Token.S_num) {
+				unit.append(ch.getIVal()).append(" ");
+			} else {
+				unit.append(ch.getToken()).append(" ");
+			}
+			ch = this.next();
+		}
+		localil.add(new Unit(unit + "", this.stack));
 	}
 }
