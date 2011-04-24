@@ -8,7 +8,6 @@ General
 * Refactoring: seperate Classes in different Files
 * use Java Annotations (e.g. @Override)
 * JavaDoc
-* more (realistic) Testcases: fib
 
 Features
 --------

@@ -1,0 +1,24 @@
+#include "common.h"
+
+/* iterativ: input a
+fib (int pos) {
+	if (pos < 3) { return 1; }
+	else { return fib(pos-1) + fib(pos-2) }
+}
+*/
+
+#define INPUT 12
+/* input:  1  2  3  4  5  6  7  8  9 10 11  12 */
+/* result: 1  1  2  3  5  8 13 21 34 55 89 144 */
+
+/* pre: [BODY] POS */
+#define BODY 2- 3c 3c 1+ 3c 3c 1+ \ /* s: [BODY] POS-2 [BODY] POS-1 [BODY] POS */
+ 	3 < [2d 2d 2d 2d 2d 1] \ /* else: return 1; */
+	[a \ /* s: [BODY] POS-2 fib[POS-1] */
+	4c 5d 4c 5d 3c \ /* s: fib[POS-1] [BODY] POS-2 [BODY] */
+	a \ /* s: fib[POS-1] fib[POS-2] */
+	+ ] IFTE
+/* post: fib[POS] */
+
+[BODY] INPUT BODY \
+	144 /* excepted result */

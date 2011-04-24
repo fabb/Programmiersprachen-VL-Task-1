@@ -1,6 +1,6 @@
 SHELL := bash
 
-all: prime.tr ifbsp.tr fac.tr ggt.tr
+all: prime.tr ifbsp.tr fac.tr ggt.tr fib.tr
 
 # .tr : inputformat according to the assignment (generated)
 # .trp: input with preprocessor statements
