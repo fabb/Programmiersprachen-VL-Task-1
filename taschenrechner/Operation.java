@@ -72,7 +72,11 @@ class Division extends Operation {
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
-		new Int(arg1 / arg2, this.stack).exec();;
+		try {
+			new Int(arg1 / arg2, this.stack).exec();
+		} catch (ArithmeticException e) {
+			throw new ExecuteException("division by 0 not possible");
+		}
 	}
 }
 
@@ -83,7 +87,11 @@ class Modulus extends Operation {
 	public void exec() throws ExecuteException {
 		int arg2 = this.stack.safepop().getInt();
 		int arg1 = this.stack.safepop().getInt();
-		new Int(arg1 % arg2, this.stack).exec();
+		try {
+			new Int(arg1 % arg2, this.stack).exec();
+		} catch (ArithmeticException e) {
+			throw new ExecuteException("division by 0 not possible");
+		}
 	}
 }
 

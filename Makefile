@@ -6,9 +6,9 @@ DIST := dist
 DOCS := docs/
 LIB := lib/*
 
-all: $(DIST) $(DIST)/taschenrechner/$(TARGET)
+all: $(DIST) $(DIST)/taschenrechner/$(TARGET) $(DOCS)
 
-$(SRC): $(DIST) $(DOCS)
+$(SRC): $(DIST)
 
 $(DIST)/taschenrechner/$(TARGET): $(SRC)
 	@echo "COMPILE  $^"
@@ -20,7 +20,7 @@ $(DIST):
 exec: $(DIST)/taschenrechner/$(TARGET)
 	java -cp $(LIB):$(DIST) $(CLASSTARGET) -d
 
-$(DOCS):
+$(DOCS): $(SRC)
 	@mkdir -p $@/
 	javadoc taschenrechner -private -sourcepath taschenrechner \
 		-d $@ $(SRC)
