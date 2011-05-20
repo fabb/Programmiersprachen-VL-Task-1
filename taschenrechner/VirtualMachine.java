@@ -41,7 +41,7 @@ enum ConsoleColor {
 }
 
 /**
- * This class basically clues together all components and does the I/O stuff.
+ * This class basically glues together all components and does the I/O stuff.
  */
 public class VirtualMachine {
 	private Stack stack;
