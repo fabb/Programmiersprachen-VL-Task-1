@@ -4,11 +4,6 @@
  * 3. arg: expr */
 #define IFTE [4c 5d 2+ d a]a
 
-/* IF Else Then //cf. forth
- * TODO
- */
-#define IFET [4c 5d 2+ d a]
-
 /* swap the two upper elements */
 #define SWP 3c 4d
 
