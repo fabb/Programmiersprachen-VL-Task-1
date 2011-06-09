@@ -1,5 +1,5 @@
 /* if-then-else example from the assignment */
-#include "common.h"
+#include "common.trp"
 
 0 [9] [9~] IFTE \
 	9 /* excepted result */

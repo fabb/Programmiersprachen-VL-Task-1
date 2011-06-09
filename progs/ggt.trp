@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common.trp"
 
 /* iterativ: input a and b
 	int r;

@@ -20,7 +20,7 @@ Nachteile:
 -) Für Zahlen p<2 liefert der Algorithmus auch True.
 #endif
 
-#include "common.h"
+#include "common.trp"
 
 #define INPUT 98807
 /* pre: INPUT [BODY] iter */

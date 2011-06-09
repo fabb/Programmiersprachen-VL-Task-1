@@ -1,5 +1,5 @@
 /* fac example from the assignment */
-#include "common.h"
+#include "common.trp"
 
 #define FACBODY [3c 3c 1- 2c 1= [] 5c IFTE 3d *]
 #define INPUT 3
