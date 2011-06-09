@@ -28,10 +28,10 @@ $(DIST):
 	@mkdir -p $@/
 
 exec: $(RTARGET)
-	java -cp $(LIB):$(DIST) $(CLASSTARGET) -d
+	java -cacao -cp $(LIB):$(DIST) $(CLASSTARGET) -d
 
 test: $(RTARGET)
-	java -cp $(LIB):$(DIST) junit.textui.TestRunner $(TESTCLASSTARGET)
+	java -cacao -cp $(LIB):$(DIST) junit.textui.TestRunner $(TESTCLASSTARGET)
 
 $(DOCS): $(SRC)
 	@echo "GEN      JAVADOC"
@@ -41,7 +41,7 @@ $(DOCS): $(SRC)
 	
 progs: all
 	@make -C $@/
-	for i in `ls $@/*.tr`; do echo $$i:; java -cp $(LIB):$(DIST) \
+	for i in `ls $@/*.tr`; do echo $$i:; java -cacao -cp $(LIB):$(DIST) \
 		$(CLASSTARGET) -f $$i; done
 
 .PHONY: clean progs exec test

@@ -23,26 +23,25 @@ Nachteile:
 #include "common.h"
 
 #define INPUT 98807
+/* pre: INPUT [BODY] iter */
 #define BODY \
-	[ \
-		1- \ 	// den Iterator (steht am Stack immer nach INPUT und BODY) in-place dekrementieren - wird auch vor dem ersten Vergleich benötigt, da INPUT%INPUT natürlich 0 ergibt...
-		2c \ 	// i kopieren damit darauf gearbeitet werden kann
-		2< \ 	// überprüfen, ob i<2 ist, denn dann soll abgebrochen werden
-		[0] \ 	// True-Zweig von (i<2), BODY terminiert damit und gibt True zurück, da kein Fall aufgetreten ist, in dem INPUT%i==0 war
-		[ \ 	// False-Zweig von (i<2), überprüft auf INPUT%i==0 und je nach Ergebnis wird False zurückgegeben, oder ein weiterer rekursiver Aufruf getätigt
-			4c 3c \	// hole Kopien von INPUT und i um damit arbeiten zu können - Vorsicht, Denkfalle: der Platz am Stack vom True- oder False-Wert des (i<2)-Vergleichs ist an dieser Stelle schon freigegeben!
-			% \ 	// Modulo-Operation INPUT%i
-			0= \ 	// Vergleich, ob die Modulo-Operation 0 geliefert hat (keine Primzahl => linker Zweig), oder nicht (weiter rekursieren => rechter Zweig)
-			[[1]] \	// keine Primzahl, 1 wird zurückgegeben
-			[3c]  \	// BODY holen um weiter Rekursion auszuführen
-			IFTE a \ // je nach Ergebnis von (INPUT%i==0) wird der linke oder rechte Teil ausgeführt - das zweite a ist notwendig, da in [3c] dann [BODY] stehen wird und BODY wieder eckig geklammert ist
-		] \
-		IFTE \ // führt entweder den True- oder den False-Zweig von (i<2) aus
-	]
+	1- \ 	// den Iterator (steht am Stack immer nach INPUT und BODY) in-place dekrementieren - wird auch vor dem ersten Vergleich benötigt, da INPUT%INPUT natürlich 0 ergibt...
+	2c \ 	// s: INPUT [BODY] (iter-1) (iter-1) // i kopieren damit darauf gearbeitet werden kann
+	2< \ 	// überprüfen, ob i<2 ist, denn dann soll abgebrochen werden
+	[0] \ 	// True-Zweig von (i<2), BODY terminiert damit und gibt True zurück, da kein Fall aufgetreten ist, in dem INPUT%i==0 war
+	[ \ 	// False-Zweig von (i<2), überprüft auf INPUT%i==0 und je nach Ergebnis wird False zurückgegeben, oder ein weiterer rekursiver Aufruf getätigt
+		4c 3c \	// s: INPUT [BODY] (iter-1) INPUT (iter-1) // hole Kopien von INPUT und i um damit arbeiten zu können
+		% \ 	// Modulo-Operation INPUT%i
+		0= \ 	// s: INPUT [BODY] (iter-1) cmperg // Vergleich, ob die Modulo-Operation 0 geliefert hat
+		[1] \	// keine Primzahl, 1 wird zurückgegeben
+		[3c a]  \	// BODY holen um weiter Rekursion auszuführen
+		IFTE \ // je nach Ergebnis von (INPUT%i==0) wird der linke oder rechte Teil ausgeführt
+	] \
+	IFTE \ // führt entweder den True- oder den False-Zweig von (i<2) aus
 
 /* Programm */
 INPUT \        // Primzahl
-	BODY \ 	// Rekursives Programm welches bis zum Schluss am Stack bleiben
+	[BODY] \ 	// Rekursives Programm welches bis zum Schluss am Stack bleiben
 	3c \ 	// workingcopy von INPUT
 	2/ 1+ \ // Es reicht von p/2 auf Teilbarkeit zu überprüfen; Inkrementieren ist notwendig, da im rekursiven Programm am Anfang dekrementiert wird
 	3c \ 	// Kopie von BODY mit welcher gearbeitet wird
