@@ -1,3 +1,13 @@
+What's this?
+============
+
+This is one of three tasks to be completed in the proceedings of the course "Programming Languages" at the University of Technology Vienna. I solved these together with lewurm.
+
+In this task, lewurm did the implementation and I reviewed it.
+
+Below you can find the original task description in German.
+
+
 1. Übungsaufgabe
 ============
 
