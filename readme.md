@@ -8,7 +8,7 @@ In this task, lewurm did the implementation and I reviewed it.
 Below you can find the original task description in German.
 
 
-1. Übungsaufgabe
+1\. Übungsaufgabe
 ============
 
 Aufgabe:
